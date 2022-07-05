@@ -39,6 +39,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   alfa_msg
+  pcl_visualization
 )
 find_package(Boost REQUIRED COMPONENTS filesystem thread)
 
@@ -61,6 +62,7 @@ catkin_package(
     roscpp
     sensor_msgs
     std_msgs
+    pcl_visualization
   DEPENDS
     Boost
     PCL
