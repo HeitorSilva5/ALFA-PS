@@ -5,7 +5,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <fstream>
 #include <iostream>
-#include <pcl/visualization/pcl_visualizer.h>
+//#include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/range_image/range_image.h>
 #include <pcl/range_image/range_image_spherical.h>
 #include <boost/thread/thread.hpp>
