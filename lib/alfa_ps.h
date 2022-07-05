@@ -9,9 +9,10 @@
 #include <pcl/range_image/range_image.h>
 #include <pcl/range_image/range_image_spherical.h>
 #include <boost/thread/thread.hpp>
+#include <pcl/io/png_io.h>
 #include <pcl/visualization/common/float_image_utils.h>
 #include <unistd.h>
-#include <pcl/io/png_io.h>
+//#include <pcl/io/png_io.h>
 #include <chrono>
 #include <time.h>
 #include "alfa_node.h"
