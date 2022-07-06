@@ -30,12 +30,16 @@ int main(int argc, char **argv)
        parameter5.config = 120;
        parameter5.config_name = "Sensor's maximum range";
 
+       parameter6.config = 9;
+       parameter6.config_name = "Compression level";
+
       vector<alfa_msg::ConfigMessage> default_configurations;
       default_configurations.push_back(parameter1);
       default_configurations.push_back(parameter2);
       default_configurations.push_back(parameter3);
       default_configurations.push_back(parameter4);
       default_configurations.push_back(parameter5);
+      default_configurations.push_back(parameter6);
 
     AlfaPsCompressor new_node(NODE_NAME,NODE_TYPE,&default_configurations);
     while(ros::ok())

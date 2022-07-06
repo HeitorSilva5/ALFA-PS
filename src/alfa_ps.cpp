@@ -13,8 +13,13 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     avg_size_original=0;
     avg_size_png=0;
     total_points=0;
-    fps=0;
-    pps=0;
+
+    compression_lvl=9;
+    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(compression_lvl);
+    // compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
+    // compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
+
  }
 
 void AlfaPsCompressor::setSensorParameters()
@@ -22,7 +27,7 @@ void AlfaPsCompressor::setSensorParameters()
     std::cout << "Setting sensor parameters" << std::endl;
 
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
-    sensor_parameters.angular_resolution_vertical = (float) ( 0.41875* (M_PI/180.0f));
+    sensor_parameters.angular_resolution_vertical = (float) ( 0.41875f * (M_PI/180.0f));
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
     sensor_parameters.max_angle_height = (float) (90.0f * (M_PI/180.0f));
     sensor_parameters.max_sensor_distance = 120;
@@ -36,7 +41,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     file_name="clouds/CompressedClouds/PNGS/rosbag_64_" + std::to_string(counter) + ".png";
 
-    std::cout << counter+1 << " : " << input_cloud->size() << endl;
+    //std::cout << counter+1 << " : " << input_cloud->size() << endl;
 
     auto start_ri = std::chrono::high_resolution_clock::now();
     range_image.createFromPointCloud(*input_cloud, sensor_parameters.angular_resolution_horizontal, sensor_parameters.angular_resolution_vertical, sensor_parameters.max_angle_width, sensor_parameters.max_angle_height,
@@ -48,39 +53,177 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     float* ranges = range_image.getRangesArray();
 
-    unsigned char* rgb_image = pcl::visualization::FloatImageUtils::getVisualImage (ranges, range_image.width, range_image.height, 0, sensor_parameters.max_sensor_distance, true);
+    unsigned char* rgb_image = getVisualImage(ranges, range_image.width, range_image.height, 0, sensor_parameters.max_sensor_distance, true);
+
 
     auto start_png = std::chrono::high_resolution_clock::now();
-    pcl::io::saveRgbPNGFile(file_name, rgb_image, range_image.width, range_image.height);
+    //pcl::io::saveRgbPNGFile(file_name, rgb_image, range_image.width, range_image.height);
+    image = cv::Mat(range_image.height, range_image.width, CV_8UC3, static_cast<void*> (rgb_image));
+    cv::imwrite(file_name, image, compression_params);
     auto stop_png = std::chrono::high_resolution_clock::now();
     auto duration_png = std::chrono::duration_cast<std::chrono::milliseconds>(stop_png - start_png);
 
     calculate_metrics(input_cloud->size(), file_name, duration_ri.count(), duration_png.count(), counter+1);
     publish_metrics(output_metrics);
 
+    free(ranges);
+    free(rgb_image);
+
     if(counter==(NOF-1)){
         avg_metrics();
         counter=0;
+        avg_exec_time_ri=0;
+        avg_exec_time_png=0;
+        avg_size_original=0;
+        avg_size_png=0;
+        total_points=0;
+        return;
     }
-    free(ranges);
+
     counter++;
+}
+
+unsigned char* AlfaPsCompressor::getVisualImage (const float* float_image, int width, int height, float min_value, float max_value, bool gray_scale) 
+{
+  //MEASURE_FUNCTION_TIME;
+  
+  //std::cout << "Image is of size "<<width<<"x"<<height<<"\n";
+  int size = width*height;
+  int arraySize = 3 * size;
+  unsigned char* data = new unsigned char[arraySize];
+  unsigned char* dataPtr = data;
+  
+  bool recalculateMinValue = std::isinf (min_value),
+       recalculateMaxValue = std::isinf (max_value);
+  if (recalculateMinValue) min_value = std::numeric_limits<float>::infinity ();
+  if (recalculateMaxValue) max_value = -std::numeric_limits<float>::infinity ();
+  
+  if (recalculateMinValue || recalculateMaxValue) 
+  {
+    for (int i=0; i<size; ++i) 
+    {
+      float value = float_image[i];
+      if (!std::isfinite(value)) continue;
+      if (recalculateMinValue)  min_value = (std::min)(min_value, value);
+      if (recalculateMaxValue)  max_value = (std::max)(max_value, value);
+    }
+  }
+  //std::cout << "min_value is "<<min_value<<" and max_value is "<<max_value<<".\n";
+  float factor = 1.0f / (max_value-min_value), offset = -min_value;
+  
+  for (int i=0; i<size; ++i) 
+  {
+    unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);
+    float value = float_image[i];
+    
+    if (!std::isfinite(value)) 
+    {
+      getColorForFloat(value, r, g, b);
+      continue;
+    }
+    
+    // Normalize value to [0, 1]
+    value = std::max (0.0f, std::min (1.0f, factor * (value + offset)));
+    
+    // Get a color from the value in [0, 1]
+    if (gray_scale) 
+    {
+      r = g = b = static_cast<unsigned char> (pcl_lrint (value * 255));
+    }
+    else 
+    {
+      getColorForFloat(value, r, g, b);
+    }
+    //std::cout << "Setting pixel "<<i<<" to "<<(int)r<<", "<<(int)g<<", "<<(int)b<<".\n";
+  }
+  
+  return data;
+}
+
+void AlfaPsCompressor::getColorForFloat (float value, unsigned char& r, unsigned char& g, unsigned char& b) 
+{
+  if (std::isinf (value)) 
+  {
+    if (value > 0.0f) 
+    {
+      r = 150;  g = 150;  b = 200;  // INFINITY
+      return;
+    }
+    r = 150;  g = 200;  b = 150;  // -INFINITY
+    return;
+  }
+  if (!std::isfinite (value)) 
+  {
+    r = 200;  g = 150;  b = 150;  // -INFINITY
+    return;
+  }
+  
+  r = g = b = 0;
+  value *= 10;
+  if (value <= 1.0) 
+  {  // black -> purple
+    b = static_cast<unsigned char> (pcl_lrint(value*200));
+    r = static_cast<unsigned char> (pcl_lrint(value*120));
+  }
+  else if (value <= 2.0) 
+  {  // purple -> blue
+    b = static_cast<unsigned char> (200 + pcl_lrint((value-1.0)*55));
+    r = static_cast<unsigned char> (120 - pcl_lrint((value-1.0)*120));
+  }
+  else if (value <= 3.0) 
+  {  // blue -> turquoise
+    b = static_cast<unsigned char> (255 - pcl_lrint((value-2.0)*55));
+    g = static_cast<unsigned char> (pcl_lrint((value-2.0)*200));
+  }
+  else if (value <= 4.0) 
+  {  // turquoise -> green
+    b = static_cast<unsigned char> (200 - pcl_lrint((value-3.0)*200));
+    g = static_cast<unsigned char> (200 + pcl_lrint((value-3.0)*55));
+  }
+  else if (value <= 5.0) 
+  {  // green -> greyish green
+    g = static_cast<unsigned char> (255 - pcl_lrint((value-4.0)*100));
+    r = static_cast<unsigned char> (pcl_lrint((value-4.0)*120));
+  }
+  else if (value <= 6.0) 
+  { // greyish green -> red
+    r = static_cast<unsigned char> (100 + pcl_lrint((value-5.0)*155));
+    g = static_cast<unsigned char> (120 - pcl_lrint((value-5.0)*120));
+    b = static_cast<unsigned char> (120 - pcl_lrint((value-5.0)*120));
+  }
+  else if (value <= 7.0) 
+  {  // red -> yellow
+    r = 255;
+    g = static_cast<unsigned char> (pcl_lrint((value-6.0)*255));
+  }
+  else 
+  {  // yellow -> white
+    r = 255;
+    g = 255;
+    b = static_cast<unsigned char> (pcl_lrint((value-7.0)*255.0/3.0));
+  }
 }
 
 alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::AlfaConfigure::Request &req)
 {
-    cout << "Updating Sensor Parameters" << endl;
-    if(req.configurations.size()==5)
+    cout << "Updating configuration Parameters" << endl;
+    if(req.configurations.size()==6)
     {
         sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[0].config * (M_PI/180.0f));
         sensor_parameters.angular_resolution_vertical = (float) (req.configurations[1].config * (M_PI/180.0f));
         sensor_parameters.max_angle_width = (float) (req.configurations[2].config * (M_PI/180.0f));
         sensor_parameters.max_angle_height = (float) (req.configurations[3].config * (M_PI/180.0f));
         sensor_parameters.max_sensor_distance = req.configurations[4].config;
+        compression_lvl = req.configurations[5].config;
+        compression_params.clear();
+        compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+        compression_params.push_back(compression_lvl);
         default_configurations[0][0].config = req.configurations[0].config;
         default_configurations[0][1].config = req.configurations[1].config;
         default_configurations[0][2].config = req.configurations[2].config;
         default_configurations[0][3].config = req.configurations[3].config;
         default_configurations[0][4].config = req.configurations[4].config;
+        default_configurations[0][5].config = req.configurations[5].config;
     }
     alfa_msg::AlfaConfigure::Response response;
     response.return_status = 1;
@@ -158,7 +301,8 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
     new_message.metric_name = "Points per second";
     output_metrics.metrics.push_back(new_message);
 
-    if(counter==1 || counter==15 || counter==30 || counter==45 || counter==60 || counter==75 || counter==90){
+    if(counter==1 || counter==15 || counter==30 || counter==45 || counter==60 || counter==75 || counter==600){
+        ROS_INFO("Frame number %d\n", counter);
         ROS_INFO("Range image processing time: %f\n", duration_ri);
         ROS_INFO("PNG processing time: %f\n", duration_png);
         ROS_INFO("Total processing time: %f\n", duration_png + duration_ri);
@@ -174,9 +318,9 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
 
 void AlfaPsCompressor::avg_metrics()
 {
+    double fps = 1000/((avg_exec_time_png+avg_exec_time_ri)/NOF);
+    double pps = pps=fps*PPF;                                          //points per sec
 
-    fps=1000/((avg_exec_time_png+avg_exec_time_ri)/NOF);
-    pps=fps*PPF;
     ROS_INFO("---------------------------Ps-Compression finished---------------------------\n");
     ROS_INFO("Range image average processing time: %f\n", avg_exec_time_ri/NOF);
     ROS_INFO("PNG average processing time: %f\n", avg_exec_time_png/NOF);
