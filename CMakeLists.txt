@@ -69,6 +69,9 @@ catkin_package(
     message_runtime
 )
 
+#timers
+#add_compile_options(-pg)					
+#set(catkin_LIBRARIES ${catkin_LIBRARIES} -pg)
 
 add_definitions(${PCL_DEFINITIONS})
 

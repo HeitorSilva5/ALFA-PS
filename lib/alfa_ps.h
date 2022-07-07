@@ -17,8 +17,8 @@
 #include <opencv2/highgui.hpp>
 
 // 64 -> 77 | 32 -> 97 | 32 -> 594
-#define NOF 76                                        //Number of frames in the rosbag
-#define PPF 122000                                    //Number of points per frame
+#define NOF 76                                         //Number of frames in the rosbag
+#define PPF 122000                                     //Number of points per frame
 
 struct sensorParameters
 {

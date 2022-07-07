@@ -17,8 +17,8 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     compression_lvl=9;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(compression_lvl);
-    // compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
-    // compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
+    compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
+    compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
 
  }
 
@@ -301,17 +301,17 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
     new_message.metric_name = "Points per second";
     output_metrics.metrics.push_back(new_message);
 
-    if(counter==1 || counter==15 || counter==30 || counter==45 || counter==60 || counter==75 || counter==600){
-        ROS_INFO("Frame number %d\n", counter);
-        ROS_INFO("Range image processing time: %f\n", duration_ri);
-        ROS_INFO("PNG processing time: %f\n", duration_png);
-        ROS_INFO("Total processing time: %f\n", duration_png + duration_ri);
-        ROS_INFO("Current FPS: %f\n", current_fps);
-        ROS_INFO("Current PPS: %f\n", current_pps);
-        ROS_INFO("Point Cloud size: %f\n", size_original/1000);
-        ROS_INFO("Compressed size: %f\n", size_png/1000);
-        ROS_INFO("Compression ratio: %f\n", size_original/size_png);
-    }
+    // if(counter==1 || counter==15 || counter==30 || counter==45 || counter==60 || counter==75 || counter==90){
+    //     ROS_INFO("Frame number %d\n", counter);
+    //     ROS_INFO("Range image processing time: %f\n", duration_ri);
+    //     ROS_INFO("PNG processing time: %f\n", duration_png);
+    //     ROS_INFO("Total processing time: %f\n", duration_png + duration_ri);
+    //     ROS_INFO("Current FPS: %f\n", current_fps);
+    //     ROS_INFO("Current PPS: %f\n", current_pps);
+    //     ROS_INFO("Point Cloud size: %f\n", size_original/1000);
+    //     ROS_INFO("Compressed size: %f\n", size_png/1000);
+    //     ROS_INFO("Compression ratio: %f\n", size_original/size_png);
+    // }
 
 }
 
