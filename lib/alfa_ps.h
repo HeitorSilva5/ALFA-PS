@@ -16,12 +16,13 @@
 #include "alfa_node.h"
 #include <opencv2/highgui.hpp>
 
-// 64 -> 77 | 32 -> 97 | 32 -> 594
-#define NOF 76                                         //Number of frames in the rosbag
-#define PPF 122000                                     //Number of points per frame
+// 64 -> 76 | 32 -> 96 | 32 -> 593
+// #define NOF 76                                         //Number of frames in the rosbag
+// #define PPF 122000                                     //Number of points per frame
 
 struct sensorParameters
 {
+    int sensor_tag;
     float angular_resolution_horizontal;
     float angular_resolution_vertical;
     float max_angle_width;
@@ -62,5 +63,8 @@ class AlfaPsCompressor : public  AlfaNode
         double avg_size_original;
         double avg_size_png;
         double total_points;
+        
+        int PPF;
+        int NOF;
 };
 

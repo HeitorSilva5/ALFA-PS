@@ -13,6 +13,9 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     avg_size_original=0;
     avg_size_png=0;
     total_points=0;
+    PPF=122000;
+
+    NOF=76;
 
     compression_lvl=9;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
@@ -26,11 +29,13 @@ void AlfaPsCompressor::setSensorParameters()
 {
     std::cout << "Setting sensor parameters" << std::endl;
 
+    sensor_parameters.sensor_tag=64;
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
     sensor_parameters.angular_resolution_vertical = (float) ( 0.41875f * (M_PI/180.0f));
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
     sensor_parameters.max_angle_height = (float) (90.0f * (M_PI/180.0f));
     sensor_parameters.max_sensor_distance = 120;
+
 }
 
 void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud)
@@ -39,9 +44,9 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     static int counter=0;
 
-    file_name="clouds/CompressedClouds/PNGS/rosbag_64_" + std::to_string(counter) + ".png";
+    file_name="/clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
 
-    //std::cout << counter+1 << " : " << input_cloud->size() << endl;
+    std::cout << counter+1 << endl;
 
     auto start_ri = std::chrono::high_resolution_clock::now();
     range_image.createFromPointCloud(*input_cloud, sensor_parameters.angular_resolution_horizontal, sensor_parameters.angular_resolution_vertical, sensor_parameters.max_angle_width, sensor_parameters.max_angle_height,
@@ -209,21 +214,40 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
     cout << "Updating configuration Parameters" << endl;
     if(req.configurations.size()==6)
     {
-        sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[0].config * (M_PI/180.0f));
-        sensor_parameters.angular_resolution_vertical = (float) (req.configurations[1].config * (M_PI/180.0f));
-        sensor_parameters.max_angle_width = (float) (req.configurations[2].config * (M_PI/180.0f));
-        sensor_parameters.max_angle_height = (float) (req.configurations[3].config * (M_PI/180.0f));
-        sensor_parameters.max_sensor_distance = req.configurations[4].config;
-        compression_lvl = req.configurations[5].config;
+        sensor_parameters.sensor_tag = req.configurations[0].config;
+        sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[1].config * (M_PI/180.0f));
+        sensor_parameters.angular_resolution_vertical = (float) (req.configurations[2].config * (M_PI/180.0f));
+        sensor_parameters.max_angle_width = (float) (req.configurations[3].config * (M_PI/180.0f));
+        sensor_parameters.max_angle_height = (float) (req.configurations[4].config * (M_PI/180.0f));
+        sensor_parameters.max_sensor_distance = req.configurations[5].config;
         compression_params.clear();
-        compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-        compression_params.push_back(compression_lvl);
+        if(req.configurations[6].config==10)
+        {
+          compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
+          compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
+        }
+        else if(req.configurations[6].config==11)
+        {
+          compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
+          compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_RLE);
+        }
+        else
+        {
+          compression_lvl = req.configurations[6].config;
+          compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+          compression_params.push_back(compression_lvl);
+        }
+        NOF = req.configurations[7].config;
+        PPF = req.configurations[8].config;
         default_configurations[0][0].config = req.configurations[0].config;
         default_configurations[0][1].config = req.configurations[1].config;
         default_configurations[0][2].config = req.configurations[2].config;
         default_configurations[0][3].config = req.configurations[3].config;
         default_configurations[0][4].config = req.configurations[4].config;
         default_configurations[0][5].config = req.configurations[5].config;
+        default_configurations[0][6].config = req.configurations[6].config;
+        default_configurations[0][7].config = req.configurations[7].config;
+        default_configurations[0][8].config = req.configurations[8].config;
     }
     alfa_msg::AlfaConfigure::Response response;
     response.return_status = 1;
