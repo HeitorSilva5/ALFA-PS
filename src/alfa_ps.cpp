@@ -212,7 +212,7 @@ void AlfaPsCompressor::getColorForFloat (float value, unsigned char& r, unsigned
 alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::AlfaConfigure::Request &req)
 {
     cout << "Updating configuration Parameters" << endl;
-    if(req.configurations.size()==6)
+    if(req.configurations.size()==9)
     {
         sensor_parameters.sensor_tag = req.configurations[0].config;
         sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[1].config * (M_PI/180.0f));
