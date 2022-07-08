@@ -18,7 +18,7 @@
 #include "alfa_msg/AlfaMetrics.h"
 #include "alfa_msg/AlfaAlivePing.h"
 
-#define TIMER_SLEEP 5000 // Time between alive messages
+#define TIMER_SLEEP 3000 // Time between alive messages
 
 #define CLOUD_TOPIC "alfa_pointcloud"  //Name of the subsriver topic where this node gets point clouds
 
