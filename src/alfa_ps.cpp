@@ -16,10 +16,13 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     else
     ROS_INFO("NAO ENTROU NO NMAP :(");
 
-    hw32_vptr[0] = 0;
 
-    vector<uint32_t> two_matrix {0x01020301, 0x02030102, 0x03010203, 0x01020301, 0x01020000};
-
+    vector<uint32_t> two_matrix;
+    two_matrix.push_back(0x01020301);
+    two_matrix.push_back(0x02030102);
+    two_matrix.push_back(0x03010203);
+    two_matrix.push_back(0x01020301);
+    two_matrix.push_back(0x02030000);
     // Write in Hw
     write_hardware_registers(two_matrix, hw32_vptr);
     
