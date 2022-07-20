@@ -26,7 +26,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     // Write in Hw
     write_hardware_registers(two_matrix, hw32_vptr);
     
-    sleep(1);
+    //sleep(1);
 
     // Read in Hw
     vector<uint32_t> return_vector;
