@@ -13,7 +13,7 @@ int main(int argc, char **argv)
        if (!ros::master::check()) {
            cout <<"Failed to inicialize ros"<<endl;
        }
-       alfa_msg::ConfigMessage parameter1,parameter2,parameter3,parameter4,parameter5,parameter6,parameter7,parameter8,parameter9;
+       alfa_msg::ConfigMessage parameter1,parameter2,parameter3,parameter4,parameter5,parameter6,parameter7,parameter8;
        
        parameter1.config = 64;
        parameter1.config_name = "Name tag";
@@ -39,8 +39,6 @@ int main(int argc, char **argv)
        parameter8.config = 76;
        parameter8.config_name = "Number of frames";
 
-       parameter9.config = 122000;
-       parameter9.config_name = "Points per frame";
 
       vector<alfa_msg::ConfigMessage> default_configurations;
       default_configurations.push_back(parameter1);
@@ -51,7 +49,6 @@ int main(int argc, char **argv)
       default_configurations.push_back(parameter6);
       default_configurations.push_back(parameter7);
       default_configurations.push_back(parameter8);
-      default_configurations.push_back(parameter9);
 
     AlfaPsCompressor new_node(NODE_NAME,NODE_TYPE,&default_configurations);
     while(ros::ok())

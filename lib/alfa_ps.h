@@ -18,7 +18,6 @@
 
 // 64 -> 76 | 32 -> 96 | 32 -> 593
 // #define NOF 76                                         //Number of frames in the rosbag
-// #define PPF 122000                                     //Number of points per frame
 
 struct sensorParameters
 {
@@ -63,8 +62,10 @@ class AlfaPsCompressor : public  AlfaNode
         double avg_size_original;
         double avg_size_png;
         double total_points;
-        
-        int PPF;
+
+        double points_per_second;
+        double frames_per_second;
+
         int NOF;
 };
 

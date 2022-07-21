@@ -4,54 +4,55 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
  {
     std::cout << "ALFA-Ps started" << std::endl;
 
-    unsigned int region_size = 0x10000;
-    off_t axi_pbase = 0xA0000000;
-    u_int32_t *hw32_vptr;
-    int fd;
+    // unsigned int region_size = 0x10000;
+    // off_t axi_pbase = 0xA0000000;
+    // u_int32_t *hw32_vptr;
+    // int fd;
 
     // Map the physical address into user space getting a virtual address for it
-    if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) != -1) {
-      hw32_vptr = (u_int32_t *)mmap(NULL, region_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, axi_pbase);
-    }
-    else
-    ROS_INFO("NAO ENTROU NO NMAP :(");
+    // if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) != -1) {
+    //   hw32_vptr = (u_int32_t *)mmap(NULL, region_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, axi_pbase);
+    // }
+    // else
+    // ROS_INFO("NAO ENTROU NO NMAP :(");
 
 
-    vector<uint32_t> two_matrix;
-    two_matrix.push_back(0x01020301);
-    two_matrix.push_back(0x02030102);
-    two_matrix.push_back(0x03010203);
-    two_matrix.push_back(0x01020301);
-    two_matrix.push_back(0x02030000);
+    // vector<uint32_t> two_matrix;
+    // two_matrix.push_back(0x01020301);
+    // two_matrix.push_back(0x02030102);
+    // two_matrix.push_back(0x03010203);
+    // two_matrix.push_back(0x01020301);
+    // two_matrix.push_back(0x02030000);
     // Write in Hw
-    write_hardware_registers(two_matrix, hw32_vptr);
+    //write_hardware_registers(two_matrix, hw32_vptr);
     
     //sleep(1);
 
     // Read in Hw
-    vector<uint32_t> return_vector;
+    // vector<uint32_t> return_vector;
 
-    ROS_INFO("Result Matrix %d ", hw32_vptr[5]);
-    ROS_INFO("Result Matrix %d ", hw32_vptr[6]);
-    ROS_INFO("Result Matrix %d - ", hw32_vptr[7]);
-    ROS_INFO("Result Matrix %d ", hw32_vptr[8]);
-    ROS_INFO("Result Matrix %d ", hw32_vptr[9]);
-    ROS_INFO("Result Matrix %d - ", hw32_vptr[10]);
-    ROS_INFO("Result Matrix %d ", hw32_vptr[11]);
-    ROS_INFO("Result Matrix %d ", hw32_vptr[12]);
-    ROS_INFO("Result Matrix %d", hw32_vptr[13]);
+    // ROS_INFO("Result Matrix %d ", hw32_vptr[5]);
+    // ROS_INFO("Result Matrix %d ", hw32_vptr[6]);
+    // ROS_INFO("Result Matrix %d - ", hw32_vptr[7]);
+    // ROS_INFO("Result Matrix %d ", hw32_vptr[8]);
+    // ROS_INFO("Result Matrix %d ", hw32_vptr[9]);
+    // ROS_INFO("Result Matrix %d - ", hw32_vptr[10]);
+    // ROS_INFO("Result Matrix %d ", hw32_vptr[11]);
+    // ROS_INFO("Result Matrix %d ", hw32_vptr[12]);
+    // ROS_INFO("Result Matrix %d", hw32_vptr[13]);
 
     setSensorParameters();
 
     output_metrics.message_tag = "Ps-Compression performance";
     
-    avg_exec_time_ri=0;
-    avg_exec_time_png=0;
-    avg_size_original=0;
-    avg_size_png=0;
-    total_points=0;
-    PPF=122000;
-
+    avg_exec_time_ri = 0;
+    avg_exec_time_png = 0;
+    avg_size_original = 0;
+    avg_size_png = 0;
+    total_points = 0;
+    points_per_second = 0;
+    frames_per_second = 0;
+    
     NOF=76;
 
     compression_lvl=9;
@@ -66,7 +67,7 @@ void AlfaPsCompressor::setSensorParameters()
 {
     std::cout << "Setting sensor parameters" << std::endl;
 
-    sensor_parameters.sensor_tag=64;
+    sensor_parameters.sensor_tag = 64;
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
     sensor_parameters.angular_resolution_vertical = (float) ( 0.41875f * (M_PI/180.0f));
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
@@ -111,14 +112,16 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     free(ranges);
     free(rgb_image);
 
-    if(counter==(NOF-1)){
+    if(counter == (NOF-1)){
         avg_metrics();
-        counter=0;
-        avg_exec_time_ri=0;
-        avg_exec_time_png=0;
-        avg_size_original=0;
-        avg_size_png=0;
-        total_points=0;
+        counter = 0;
+        avg_exec_time_ri = 0;
+        avg_exec_time_png = 0;
+        avg_size_original = 0;
+        avg_size_png = 0;
+        total_points = 0;
+        points_per_second = 0;
+        frames_per_second = 0; 
         return;
     }
 
@@ -249,7 +252,7 @@ void AlfaPsCompressor::getColorForFloat (float value, unsigned char& r, unsigned
 alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::AlfaConfigure::Request &req)
 {
     cout << "Updating configuration Parameters" << endl;
-    if(req.configurations.size()==9)
+    if(req.configurations.size()==8)
     {
         sensor_parameters.sensor_tag = req.configurations[0].config;
         sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[1].config * (M_PI/180.0f));
@@ -275,7 +278,6 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
           compression_params.push_back(compression_lvl);
         }
         NOF = req.configurations[7].config;
-        PPF = req.configurations[8].config;
         default_configurations[0][0].config = req.configurations[0].config;
         default_configurations[0][1].config = req.configurations[1].config;
         default_configurations[0][2].config = req.configurations[2].config;
@@ -284,7 +286,6 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
         default_configurations[0][5].config = req.configurations[5].config;
         default_configurations[0][6].config = req.configurations[6].config;
         default_configurations[0][7].config = req.configurations[7].config;
-        default_configurations[0][8].config = req.configurations[8].config;
     }
     alfa_msg::AlfaConfigure::Response response;
     response.return_status = 1;
@@ -306,13 +307,17 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
 
     float size_original = (static_cast<float> (cloud_size) * (sizeof (int) + 3.0f * sizeof (float)) / 1024.0f)*1000;
 
-    avg_exec_time_ri+=duration_ri;
-    avg_exec_time_png+=duration_png;
-    avg_size_original+=size_original/1000;
-    avg_size_png+=size_png/1000;
-    total_points+=cloud_size;
-    current_fps=1000/(duration_png + duration_ri);
-    current_pps=PPF*current_fps;
+    avg_exec_time_ri += duration_ri;
+    avg_exec_time_png += duration_png;
+    avg_size_original += size_original/1000;
+    avg_size_png += size_png/1000;
+    total_points += cloud_size;
+
+    current_pps = (1000*cloud_size)/(duration_png + duration_ri);
+    current_fps = 1000/(duration_png + duration_ri);
+
+    points_per_second += current_pps;
+    frames_per_second += current_fps;
 
     // alfa metrics
     alfa_msg::MetricMessage new_message;
@@ -349,7 +354,7 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
 
     new_message.metric = duration_png + duration_ri;
     new_message.units = "ms";
-    new_message.metric_name = "Total processing time";
+    new_message.metric_name = "Total compression time";
     output_metrics.metrics.push_back(new_message);
 
     new_message.metric = current_fps;
@@ -379,15 +384,13 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
 
 void AlfaPsCompressor::avg_metrics()
 {
-    double fps = 1000/((avg_exec_time_png+avg_exec_time_ri)/NOF);
-    double pps = pps=fps*PPF;                                          //points per sec
 
     ROS_INFO("---------------------------Ps-Compression finished---------------------------\n");
     ROS_INFO("Range image average processing time: %f\n", avg_exec_time_ri/NOF);
     ROS_INFO("PNG average processing time: %f\n", avg_exec_time_png/NOF);
     ROS_INFO("Total average processing time: %f\n", (avg_exec_time_png+avg_exec_time_ri)/NOF);
-    ROS_INFO("Average FPS: %f\n", fps);
-    ROS_INFO("Average PPS: %f\n", pps);
+    ROS_INFO("Average FPS NEW: %f\n", frames_per_second/NOF);
+    ROS_INFO("Average PPS: %f\n", points_per_second/NOF);
     ROS_INFO("Oringal point cloud size:\n");
     ROS_INFO("-------------------------PPF: %f points\n", total_points/NOF);
     ROS_INFO("-------------------------Total: %fkB\n", avg_size_original);
