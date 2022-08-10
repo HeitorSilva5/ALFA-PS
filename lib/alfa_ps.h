@@ -18,6 +18,7 @@
 
 // 64 -> 76 | 32 -> 96 | 32 -> 593
 // #define NOF 76                                         //Number of frames in the rosbag
+typedef long long int u64;
 
 struct sensorParameters
 {

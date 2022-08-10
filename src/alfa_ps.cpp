@@ -4,42 +4,66 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
  {
     std::cout << "ALFA-Ps started" << std::endl;
 
-    // unsigned int region_size = 0x10000;
-    // off_t axi_pbase = 0xA0000000;
-    // u_int32_t *hw32_vptr;
-    // int fd;
+    unsigned int region_size = 0x10000;
+    off_t axi_pbase = 0xA0000000;
+    u_int32_t *hw32_vptr;
+    u64 *ddr_pointer;
+    int fd;
+    unsigned int ddr_size = 0x060000;
+    off_t ddr_ptr_base = 0x0F000000; // physical base address
+    //Map the physical address into user space getting a virtual address for it
 
-    // Map the physical address into user space getting a virtual address for it
-    // if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) != -1) {
-    //   hw32_vptr = (u_int32_t *)mmap(NULL, region_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, axi_pbase);
-    // }
-    // else
-    // ROS_INFO("NAO ENTROU NO NMAP :(");
+    if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) != -1) {
+      ddr_pointer = (u64 *)mmap(NULL, ddr_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, ddr_ptr_base);
+      hw32_vptr = (u_int32_t *)mmap(NULL, region_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, axi_pbase);
+    }
+    else
+    ROS_INFO("NAO ENTROU NO NMAP :(");
 
 
-    // vector<uint32_t> two_matrix;
-    // two_matrix.push_back(0x01020301);
+    vector<uint32_t> two_matrix;
+    two_matrix.push_back(1);
     // two_matrix.push_back(0x02030102);
     // two_matrix.push_back(0x03010203);
     // two_matrix.push_back(0x01020301);
     // two_matrix.push_back(0x02030000);
-    // Write in Hw
-    //write_hardware_registers(two_matrix, hw32_vptr);
+    //Write in Hw
+    write_hardware_registers(two_matrix, hw32_vptr);
     
-    //sleep(1);
+    int16_t a16_points[4];
+    a16_points[0] = 0x0102;
+    a16_points[1] = 0x0301;
+    a16_points[2] = 0x0203;
+    a16_points[3] = 0x0102;
+    memcpy((void*)(ddr_pointer), a16_points,sizeof(int32_t)*2);
+    a16_points[0] = 0x0301;
+    a16_points[1] = 0x0203;
+    a16_points[2] = 0x0102;
+    a16_points[3] = 0x0301;
+    memcpy((void*)(ddr_pointer+1),a16_points,sizeof(int16_t)*4);
+    a16_points[0] = 0x0203;
+    a16_points[1] = 0x0000;
+    a16_points[2] = 0x0000;
+    a16_points[3] = 0x0000;
+    memcpy((void*)(ddr_pointer+2),a16_points,sizeof(int16_t)*4);
+    a16_points[0] = 0x0000;
+    a16_points[1] = 0x0000;
+    a16_points[2] = 0x0000;
+    a16_points[3] = 0x0000;
+    memcpy((void*)(ddr_pointer+3),a16_points,sizeof(int16_t)*4);
 
-    // Read in Hw
-    // vector<uint32_t> return_vector;
+    //Read in Hw
 
-    // ROS_INFO("Result Matrix %d ", hw32_vptr[5]);
-    // ROS_INFO("Result Matrix %d ", hw32_vptr[6]);
-    // ROS_INFO("Result Matrix %d - ", hw32_vptr[7]);
-    // ROS_INFO("Result Matrix %d ", hw32_vptr[8]);
-    // ROS_INFO("Result Matrix %d ", hw32_vptr[9]);
-    // ROS_INFO("Result Matrix %d - ", hw32_vptr[10]);
-    // ROS_INFO("Result Matrix %d ", hw32_vptr[11]);
-    // ROS_INFO("Result Matrix %d ", hw32_vptr[12]);
-    // ROS_INFO("Result Matrix %d", hw32_vptr[13]);
+    while(!hw32_vptr[1]){
+      ROS_INFO("WAITING");
+    }
+    int32_t array[2];
+    for(int i=0; i<5; i++){
+      memcpy((void*)(array), ddr_pointer+i,sizeof(int16_t)*4);
+      printf("%X\n", array[0]);
+      printf("%X\n", array[1]);
+    }
+
 
     setSensorParameters();
 
@@ -71,7 +95,7 @@ void AlfaPsCompressor::setSensorParameters()
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
     sensor_parameters.angular_resolution_vertical = (float) ( 0.41875f * (M_PI/180.0f));
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
-    sensor_parameters.max_angle_height = (float) (90.0f * (M_PI/180.0f));
+    sensor_parameters.max_angle_height = (float) (60.0f * (M_PI/180.0f));
     sensor_parameters.max_sensor_distance = 120;
 
 }
@@ -84,7 +108,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
 
-    std::cout << counter+1 << endl;
+    std::cout << counter+1 << " - " << input_cloud->size() << endl;
 
     auto start_ri = std::chrono::high_resolution_clock::now();
     range_image.createFromPointCloud(*input_cloud, sensor_parameters.angular_resolution_horizontal, sensor_parameters.angular_resolution_vertical, sensor_parameters.max_angle_width, sensor_parameters.max_angle_height,
@@ -92,7 +116,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     auto stop_ri = std::chrono::high_resolution_clock::now();                                 
     auto duration_ri = std::chrono::duration_cast<std::chrono::milliseconds>(stop_ri - start_ri);
 
-    //std::cout << range_image << "\n";
+    std::cout << range_image << "\n";
 
     float* ranges = range_image.getRangesArray();
 
