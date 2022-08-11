@@ -21,17 +21,17 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     ROS_INFO("NAO ENTROU NO NMAP :(");
     
     int16_t a16_points[4];
-    a16_points[0] = 0x0102;
-    a16_points[1] = 0x0301;
-    a16_points[2] = 0x0203;
-    a16_points[3] = 0x0102;
+    a16_points[0] = 0x0201;
+    a16_points[1] = 0x0103;
+    a16_points[2] = 0x0302;
+    a16_points[3] = 0x0201;
     memcpy((void*)(ddr_pointer), a16_points,sizeof(int32_t)*2);
-    a16_points[0] = 0x0301;
-    a16_points[1] = 0x0203;
-    a16_points[2] = 0x0102;
-    a16_points[3] = 0x0301;
+    a16_points[0] = 0x0103;
+    a16_points[1] = 0x0302;
+    a16_points[2] = 0x0201;
+    a16_points[3] = 0x0103;
     memcpy((void*)(ddr_pointer+1),a16_points,sizeof(int16_t)*4);
-    a16_points[0] = 0x0203;
+    a16_points[0] = 0x0302;
     a16_points[1] = 0x0000;
     a16_points[2] = 0x0000;
     a16_points[3] = 0x0000;
@@ -41,6 +41,8 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     a16_points[2] = 0x0000;
     a16_points[3] = 0x0000;
     memcpy((void*)(ddr_pointer+3),a16_points,sizeof(int16_t)*4);
+
+    sleep(1);
 
     vector<uint32_t> two_matrix;
     two_matrix.push_back(1);
