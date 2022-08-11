@@ -19,16 +19,6 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     }
     else
     ROS_INFO("NAO ENTROU NO NMAP :(");
-
-
-    vector<uint32_t> two_matrix;
-    two_matrix.push_back(1);
-    // two_matrix.push_back(0x02030102);
-    // two_matrix.push_back(0x03010203);
-    // two_matrix.push_back(0x01020301);
-    // two_matrix.push_back(0x02030000);
-    //Write in Hw
-    write_hardware_registers(two_matrix, hw32_vptr);
     
     int16_t a16_points[4];
     a16_points[0] = 0x0102;
@@ -51,6 +41,15 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     a16_points[2] = 0x0000;
     a16_points[3] = 0x0000;
     memcpy((void*)(ddr_pointer+3),a16_points,sizeof(int16_t)*4);
+
+    vector<uint32_t> two_matrix;
+    two_matrix.push_back(1);
+    // two_matrix.push_back(0x02030102);
+    // two_matrix.push_back(0x03010203);
+    // two_matrix.push_back(0x01020301);
+    // two_matrix.push_back(0x02030000);
+    //Write in Hw
+    write_hardware_registers(two_matrix, hw32_vptr);
 
     //Read in Hw
 
