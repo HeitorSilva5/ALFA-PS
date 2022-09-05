@@ -6,64 +6,64 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
 
     unsigned int region_size = 0x10000;
     off_t axi_pbase = 0xA0000000;
-    u_int32_t *hw32_vptr;
-    u64 *ddr_pointer;
     int fd;
     unsigned int ddr_size = 0x060000;
     off_t ddr_ptr_base = 0x0F000000; // physical base address
     //Map the physical address into user space getting a virtual address for it
+    hw=0;
 
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) != -1) {
       ddr_pointer = (u64 *)mmap(NULL, ddr_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, ddr_ptr_base);
       hw32_vptr = (u_int32_t *)mmap(NULL, region_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, axi_pbase);
+      hw=1;
     }
     else
     ROS_INFO("NAO ENTROU NO NMAP :(");
     
-    int16_t a16_points[4];
-    a16_points[0] = 0x0201;
-    a16_points[1] = 0x0103;
-    a16_points[2] = 0x0302;
-    a16_points[3] = 0x0201;
-    memcpy((void*)(ddr_pointer), a16_points,sizeof(int32_t)*2);
-    a16_points[0] = 0x0103;
-    a16_points[1] = 0x0302;
-    a16_points[2] = 0x0201;
-    a16_points[3] = 0x0103;
-    memcpy((void*)(ddr_pointer+1),a16_points,sizeof(int16_t)*4);
-    a16_points[0] = 0x0302;
-    a16_points[1] = 0x0000;
-    a16_points[2] = 0x0000;
-    a16_points[3] = 0x0000;
-    memcpy((void*)(ddr_pointer+2),a16_points,sizeof(int16_t)*4);
-    a16_points[0] = 0x0000;
-    a16_points[1] = 0x0000;
-    a16_points[2] = 0x0000;
-    a16_points[3] = 0x0000;
-    memcpy((void*)(ddr_pointer+3),a16_points,sizeof(int16_t)*4);
+    // int16_t a16_points[4];
+    // a16_points[0] = 0x0201;
+    // a16_points[1] = 0x0103;
+    // a16_points[2] = 0x0302;
+    // a16_points[3] = 0x0201;
+    // memcpy((void*)(ddr_pointer), a16_points,sizeof(int32_t)*2);
+    // a16_points[0] = 0x0103;
+    // a16_points[1] = 0x0302;
+    // a16_points[2] = 0x0201;
+    // a16_points[3] = 0x0103;
+    // memcpy((void*)(ddr_pointer+1),a16_points,sizeof(int16_t)*4);
+    // a16_points[0] = 0x0302;
+    // a16_points[1] = 0x0000;
+    // a16_points[2] = 0x0000;
+    // a16_points[3] = 0x0000;
+    // memcpy((void*)(ddr_pointer+2),a16_points,sizeof(int16_t)*4);
+    // a16_points[0] = 0x0000;
+    // a16_points[1] = 0x0000;
+    // a16_points[2] = 0x0000;
+    // a16_points[3] = 0x0000;
+    // memcpy((void*)(ddr_pointer+3),a16_points,sizeof(int16_t)*4);
 
-    sleep(1);
+    // sleep(1);
 
-    vector<uint32_t> two_matrix;
-    two_matrix.push_back(1);
-    // two_matrix.push_back(0x02030102);
-    // two_matrix.push_back(0x03010203);
-    // two_matrix.push_back(0x01020301);
-    // two_matrix.push_back(0x02030000);
-    //Write in Hw
-    write_hardware_registers(two_matrix, hw32_vptr);
+    // vector<uint32_t> two_matrix;
+    // two_matrix.push_back(1);
+    // // two_matrix.push_back(0x02030102);
+    // // two_matrix.push_back(0x03010203);
+    // // two_matrix.push_back(0x01020301);
+    // // two_matrix.push_back(0x02030000);
+    // //Write in Hw
+    // write_hardware_registers(two_matrix, hw32_vptr);
 
-    //Read in Hw
+    // //Read in Hw
 
-    while(!hw32_vptr[1]){
-      ROS_INFO("WAITING");
-    }
-    int32_t array[2];
-    for(int i=0; i<5; i++){
-      memcpy((void*)(array), ddr_pointer+i,sizeof(int16_t)*4);
-      printf("%X\n", array[0]);
-      printf("%X\n", array[1]);
-    }
+    // while(!hw32_vptr[1]){
+    //   ROS_INFO("WAITING");
+    // }
+    // int32_t array[2];
+    // for(int i=0; i<5; i++){
+    //   memcpy((void*)(array), ddr_pointer+i,sizeof(int32_t)*2);
+    //   printf("%X\n", array[0]);
+    //   printf("%X\n", array[1]);
+    // }
 
 
     setSensorParameters();
@@ -104,6 +104,15 @@ void AlfaPsCompressor::setSensorParameters()
 void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud)
 {   
     output_metrics.metrics.clear();
+
+
+    vector<uint32_t> configs;
+    if(hw)
+    {
+      store_pointcloud_hardware(input_cloud,ddr_pointer);
+      configs.push_back(1);
+      write_hardware_registers(configs, hw32_vptr);
+    }
 
     static int counter=0;
 

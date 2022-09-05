@@ -54,9 +54,14 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
     int pointcloud_index = 0;
     int16_t a16_points[4];
     for (auto point :*input_cloud) {
-        a16_points[0] = point.x*RES_MULTIPLIER;
-        a16_points[1] = point.y*RES_MULTIPLIER;
-        a16_points[2] = point.z*RES_MULTIPLIER;
+        //altitude
+        a16_points[0] = std::atan2(point.z, std::hypot(point.x, point.y))*RES_MULTIPLIER;
+        //azimuth
+        const auto a = std::atan2(point.y, point.x);
+        a16_points[1] = (point.y >= 0 ? a : a + M_PI * 2)*RES_MULTIPLIER;
+        //range
+        a16_points[2] = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z)*RES_MULTIPLIER;
+        //intensity
         a16_points[3] = point.intensity*INTENSITY_MULTIPLIER;
         memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
         pointcloud_index++;
