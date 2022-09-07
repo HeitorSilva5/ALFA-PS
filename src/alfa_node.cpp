@@ -64,6 +64,10 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
         //intensity
         a16_points[3] = point.intensity*INTENSITY_MULTIPLIER;
         memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
+        if(pointcloud_index % 32 == 0)
+        {
+            std::cout << a16_points[0] << "  " << a16_points[1] << "  " << a16_points[2] << "  " << a16_points[3] << endl;
+        }
         pointcloud_index++;
     }
 }

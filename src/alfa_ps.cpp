@@ -114,6 +114,14 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       write_hardware_registers(configs, hw32_vptr);
     }
 
+    int cnt = 0;
+    while(cnt < 4){
+      auto point = input_cloud->points[cnt];
+      std::cout << point.x << "  " << point.y << "  " << point.z << "  " << point.intensity << endl;
+      std::cout << "ALTITUDE: " << std::atan2(point.z, std::hypot(point.x, point.y)) << endl;
+      cnt ++;
+    }
+
     static int counter=0;
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
