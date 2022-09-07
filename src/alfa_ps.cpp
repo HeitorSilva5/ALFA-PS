@@ -111,16 +111,17 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     {
       store_pointcloud_hardware(input_cloud,ddr_pointer);
       configs.push_back(1);
+      configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
     }
 
-    int cnt = 0;
-    while(cnt < 4){
-      auto point = input_cloud->points[cnt];
-      std::cout << point.x << "  " << point.y << "  " << point.z << "  " << point.intensity << endl;
-      std::cout << "ALTITUDE: " << std::atan2(point.z, std::hypot(point.x, point.y)) << endl;
-      cnt ++;
-    }
+    // int cnt = 0;
+    // while(cnt < 4){
+    //   auto point = input_cloud->points[cnt];
+    //   std::cout << point.x << "  " << point.y << "  " << point.z << "  " << point.intensity << endl;
+    //   std::cout << "ALTITUDE: " << std::atan2(point.z, std::hypot(point.x, point.y)) << endl;
+    //   cnt ++;
+    // }
 
     static int counter=0;
 
