@@ -110,6 +110,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     if(hw)
     {
       store_pointcloud_hardware(input_cloud,ddr_pointer);
+      usleep(10);
       configs.push_back(1);
       configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
