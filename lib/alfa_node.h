@@ -103,7 +103,7 @@ public:
      * @param pointer The pointer to the register that will be stored
      * @param offset Offset from the pointer to skip some registers
      */
-    virtual void  write_hardware_registers(vector<uint32_t>  data, uint32_t* pointer, uint offset = 0);
+    virtual void  write_hardware_registers(vector<int32_t>  data, uint32_t* pointer, uint offset = 0);
 
     
 

@@ -86,15 +86,27 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
 
+      // vector<int32_t> configs;
+      // configs.push_back(0);
+      // configs.push_back(0);
+      // configs.push_back(20);                                          //d_azimuth
+      // configs.push_back(200);                                         //d_elevation
+      // configs.push_back((sensor_parameters.min_vertical_angle)*100);  //min_vert_angle
+      // configs.push_back(sensor_parameters.sensor_tag);                //n_lines
+      // write_hardware_registers(configs, hw32_vptr, 2);
+      // std::cout << hw32_vptr[2] << endl;
+      // std::cout << hw32_vptr[3] << endl;
+      // std::cout << hw32_vptr[4] << endl;
+      // std::cout << hw32_vptr[5] << endl;
     if(hw)
     {
-      vector<uint32_t> configs;
+      vector<int32_t> configs;
       configs.push_back(0);
       configs.push_back(0);
-      configs.push_back(20);                                    //d_azimuth
-      configs.push_back(200);                                   //d_elevation
-      configs.push_back(sensor_parameters.sensor_tag);          //n_lines
+      configs.push_back(20);                                          //d_azimuth
+      configs.push_back(200);                                         //d_elevation
       configs.push_back((sensor_parameters.min_vertical_angle)*100);  //min_vert_angle
+      configs.push_back(sensor_parameters.sensor_tag);                //n_lines
       write_hardware_registers(configs, hw32_vptr, 2);
     }
 
@@ -119,7 +131,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     output_metrics.metrics.clear();
 
 
-    vector<uint32_t> configs;
+    vector<int32_t> configs;
     if(hw)
     {
       store_pointcloud_hardware(input_cloud,ddr_pointer);
