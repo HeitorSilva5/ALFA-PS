@@ -92,7 +92,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       configs.push_back(20);                                    //d_azimuth
       configs.push_back(200);                                   //d_elevation
       configs.push_back(sensor_parameters.sensor_tag);          //n_lines
-      configs.push_back(sensor_parameters.min_vertical_angle);  //min_vert_angle
+      configs.push_back((sensor_parameters.min_vertical_angle)*100);  //min_vert_angle
       write_hardware_registers(configs, hw32_vptr, 2);
     }
 
