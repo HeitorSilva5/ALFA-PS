@@ -89,6 +89,8 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     if(hw)
     {
       vector<uint32_t> configs;
+      configs.push_back(0);
+      configs.push_back(0);
       configs.push_back(20);                                    //d_azimuth
       configs.push_back(200);                                   //d_elevation
       configs.push_back(sensor_parameters.sensor_tag);          //n_lines
