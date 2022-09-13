@@ -80,11 +80,21 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     
     NOF=76;
 
-    compression_lvl=9;
+    compression_lvl=1;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(compression_lvl);
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
+
+    if(hw)
+    {
+      vector<uint32_t> configs;
+      configs.push_back(20);                                    //d_azimuth
+      configs.push_back(200);                                   //d_elevation
+      configs.push_back(sensor_parameters.sensor_tag);          //n_lines
+      configs.push_back(sensor_parameters.min_vertical_angle);  //min_vert_angle
+      write_hardware_registers(configs, hw32_vptr, 2);
+    }
 
  }
 
@@ -92,12 +102,13 @@ void AlfaPsCompressor::setSensorParameters()
 {
     std::cout << "Setting sensor parameters" << std::endl;
 
-    sensor_parameters.sensor_tag = 64;
+    sensor_parameters.sensor_tag = 16;
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
-    sensor_parameters.angular_resolution_vertical = (float) ( 0.41875f * (M_PI/180.0f));
+    sensor_parameters.angular_resolution_vertical = (float) ( 2.0f * (M_PI/180.0f));
+    sensor_parameters.min_vertical_angle = -15;
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
     sensor_parameters.max_angle_height = (float) (60.0f * (M_PI/180.0f));
-    sensor_parameters.max_sensor_distance = 120;
+    sensor_parameters.max_sensor_distance = 100;
 
 }
 
