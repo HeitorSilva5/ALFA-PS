@@ -4,7 +4,7 @@
 #include <chrono>
 
 
-#define RES_MULTIPLIER 10
+#define RES_MULTIPLIER 100
 #define INTENSITY_MULTIPLIER 1000
 //#define DEBUG
 
@@ -53,20 +53,21 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
 {
     int pointcloud_index = 0;
     int16_t a16_points[4];
+    int32_t elevation;
     for (auto point :*input_cloud) {
-        //altitude
-        a16_points[0] = std::atan2(point.z, std::hypot(point.x, point.y))*RES_MULTIPLIER;
+        //elevation
+        elevation = std::atan2(point.z, std::hypot(point.x, point.y))*RES_MULTIPLIER;
+        a16_points[0] = elevation;
+        a16_points[1] = elevation>>16;
         //azimuth
         const auto a = std::atan2(point.y, point.x);
-        a16_points[1] = (point.y >= 0 ? a : a + M_PI * 2)*RES_MULTIPLIER;
+        a16_points[2] = (point.y >= 0 ? a : a + M_PI * 2)*RES_MULTIPLIER;
         //range
-        a16_points[2] = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z)*RES_MULTIPLIER;
-        //intensity
-        a16_points[3] = point.intensity*INTENSITY_MULTIPLIER;
+        a16_points[3] = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z)*RES_MULTIPLIER;
         memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
-        if(pointcloud_index % 32 == 0)
-        {
-            std::cout << a16_points[0] << "  " << a16_points[1] << "  " << a16_points[2] << "  " << a16_points[3] << endl;
+        if(pointcloud_index < 16 || (pointcloud_index>=32 && pointcloud_index <=47))
+        {   
+            std::cout << pointcloud_index << "ELEVATION: " << elevation << "PTS: " << a16_points[0] << "  " << a16_points[1] << "  " << a16_points[2] << "  " << a16_points[3] << endl;
         }
         pointcloud_index++;
     }

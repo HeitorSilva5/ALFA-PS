@@ -149,6 +149,18 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     //   cnt ++;
     // }
 
+    // int cnt = 0;
+    // int32_t elevation;
+    // int16_t a16_points[2];
+    // while(cnt < 2){
+    //   auto point = input_cloud->points[cnt];
+    //   elevation = std::atan2(point.z, std::hypot(point.x, point.y))*100;
+    //   a16_points[0] = elevation;
+    //   a16_points[1] = elevation>>16;
+    //   std::cout << cnt << "ELEVATION: " << elevation << "PTS: " << a16_points[0] << "  " << a16_points[1] << endl;
+    //   cnt ++;
+    // }
+
     static int counter=0;
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
