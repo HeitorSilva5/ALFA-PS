@@ -150,14 +150,16 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // }
 
     // int cnt = 0;
-    // int32_t elevation;
+    // int elevation;
     // int16_t a16_points[2];
-    // while(cnt < 2){
+    // float coiso;
+    // while(cnt < 8000){
     //   auto point = input_cloud->points[cnt];
-    //   elevation = std::atan2(point.z, std::hypot(point.x, point.y))*100;
+    //   elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) * 100;
+    //   coiso = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) * 100;
     //   a16_points[0] = elevation;
     //   a16_points[1] = elevation>>16;
-    //   std::cout << cnt << "ELEVATION: " << elevation << "PTS: " << a16_points[0] << "  " << a16_points[1] << endl;
+    //   std::cout << cnt << "ELEVATION: " << elevation << "FLOAT:" << coiso << "PTS: x: " << point.x << "| y:" << point.y << "| z:" << point.z << "| a16: " << a16_points[0] << "  " << a16_points[1] << endl;
     //   cnt ++;
     // }
 
