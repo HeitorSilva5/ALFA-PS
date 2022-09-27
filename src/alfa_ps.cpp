@@ -134,11 +134,18 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     vector<int32_t> configs;
     if(hw)
     {
+      auto start_hw = std::chrono::high_resolution_clock::now();
       store_pointcloud_hardware(input_cloud,ddr_pointer);
       usleep(10);
       configs.push_back(1);
       configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
+      while(hw32_vptr[2]!=1){
+        
+      }
+      auto stop_hw = std::chrono::high_resolution_clock::now();
+      auto duration_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_hw - start_hw);
+      cout << "RANGE IMAGE DEMOROU:" << duration_hw.count() << endl;
     }
 
     // int cnt = 0;
