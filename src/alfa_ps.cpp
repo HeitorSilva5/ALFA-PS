@@ -7,7 +7,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     unsigned int region_size = 0x10000;
     off_t axi_pbase = 0xA0000000;
     int fd;
-    unsigned int ddr_size = 0x060000;
+    unsigned int ddr_size = 0x200000;
     off_t ddr_ptr_base = 0x0F000000; // physical base address
     //Map the physical address into user space getting a virtual address for it
     hw=0;
