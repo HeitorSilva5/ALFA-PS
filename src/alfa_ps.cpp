@@ -144,7 +144,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
         
       }
       auto stop_hw = std::chrono::high_resolution_clock::now();
-      auto duration_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_hw - start_hw);
+      auto duration_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_hw - start_hw);
       cout << "RANGE IMAGE DEMOROU:" << duration_hw.count() << endl;
     }
 
