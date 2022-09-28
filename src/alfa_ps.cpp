@@ -134,18 +134,21 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     vector<int32_t> configs;
     if(hw)
     {
+      auto start_total_hw = std::chrono::high_resolution_clock::now();
       store_pointcloud_hardware(input_cloud,ddr_pointer);
       usleep(10);
-      auto start_hw = std::chrono::high_resolution_clock::now();
+      auto start_RI_hw = std::chrono::high_resolution_clock::now();
       configs.push_back(1);
       configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
       while(hw32_vptr[2]!=1){
         
       }
-      auto stop_hw = std::chrono::high_resolution_clock::now();
-      auto duration_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_hw - start_hw);
-      cout << "RANGE IMAGE DEMOROU:" << duration_hw.count() << endl;
+      auto stop_RI_hw = std::chrono::high_resolution_clock::now();
+      auto duration_total_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_RI_hw - start_total_hw);
+      auto duration_RI_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_RI_hw - start_RI_hw);
+      cout << "TOTAL TIME:" << duration_total_hw.count() << "ms" << endl;
+      cout << "RANGE IMAGE DEMOROU:" << duration_RI_hw.count() << "us" << endl;
     }
 
     // int cnt = 0;
