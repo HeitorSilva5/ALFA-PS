@@ -134,9 +134,9 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     vector<int32_t> configs;
     if(hw)
     {
-      auto start_hw = std::chrono::high_resolution_clock::now();
       store_pointcloud_hardware(input_cloud,ddr_pointer);
       usleep(10);
+      auto start_hw = std::chrono::high_resolution_clock::now();
       configs.push_back(1);
       configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
