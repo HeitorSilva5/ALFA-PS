@@ -119,7 +119,7 @@ void AlfaPsCompressor::setSensorParameters()
     sensor_parameters.sensor_tag = 64;
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
     sensor_parameters.angular_resolution_vertical = (float) ( 0.42540f * (M_PI/180.0f));
-    sensor_parameters.min_vertical_angle = -2;
+    sensor_parameters.min_vertical_angle = -25;                                           //hdl64 -> -25
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
     sensor_parameters.max_angle_height = (float) (90.0f * (M_PI/180.0f));
     sensor_parameters.max_sensor_distance = 120;
