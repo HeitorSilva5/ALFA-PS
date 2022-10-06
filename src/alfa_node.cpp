@@ -65,7 +65,7 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
         //range
         a16_points[3] = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z) *RES_MULTIPLIER;
         memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
-        if(pointcloud_index < 16 || (pointcloud_index>=32 && pointcloud_index <=47))
+        if(pointcloud_index < 16 || (pointcloud_index>=32 && pointcloud_index <=47) || (input_cloud->size()-pointcloud_index<10))
         {   
             std::cout << pointcloud_index << "ELEVATION: " << elevation << "PTS: " << a16_points[0] << "  " << a16_points[1] << "  " << a16_points[2] << "  " << a16_points[3] << endl;
         }
