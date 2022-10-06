@@ -104,7 +104,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       configs.push_back(0);
       configs.push_back(0);
       configs.push_back(20);                                          //d_azimuth
-      configs.push_back(42.5);                                         //d_elevation
+      configs.push_back(46.6);                                        //d_elevation               //hdl_64 -> 46.6
       configs.push_back((sensor_parameters.min_vertical_angle)*100);  //min_vert_angle
       configs.push_back(sensor_parameters.sensor_tag);                //n_lines
       write_hardware_registers(configs, hw32_vptr, 2);
@@ -118,8 +118,8 @@ void AlfaPsCompressor::setSensorParameters()
 
     sensor_parameters.sensor_tag = 64;
     sensor_parameters.angular_resolution_horizontal = (float) ( 0.2f * (M_PI/180.0f));
-    sensor_parameters.angular_resolution_vertical = (float) ( 0.42540f * (M_PI/180.0f));
-    sensor_parameters.min_vertical_angle = -25;                                           //hdl64 -> -25
+    sensor_parameters.angular_resolution_vertical = (float) ( 0.46666f * (M_PI/180.0f));          //hdl64 -> 0.46666
+    sensor_parameters.min_vertical_angle = -24.8;                                                 //hdl64 -> -24.8
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
     sensor_parameters.max_angle_height = (float) (90.0f * (M_PI/180.0f));
     sensor_parameters.max_sensor_distance = 120;
@@ -148,16 +148,27 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       auto duration_total_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_RI_hw - start_total_hw);
       auto duration_RI_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_RI_hw - start_RI_hw);
       cout << "TOTAL TIME:" << duration_total_hw.count() << "ms" << endl;
-      cout << "RANGE IMAGE DEMOROU:" << duration_RI_hw.count() << "us" << endl;
+      cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
     }
 
-    // int cnt = 0;
-    // while(cnt < 4){
-    //   auto point = input_cloud->points[cnt];
-    //   std::cout << point.x << "  " << point.y << "  " << point.z << "  " << point.intensity << endl;
-    //   std::cout << "ALTITUDE: " << std::atan2(point.z, std::hypot(point.x, point.y)) << endl;
-    //   cnt ++;
-    // }
+    float max_elevation=0, min_elevation=0;
+    int cnt_above=0, cnt_below=0;
+    static float top_elevation = 0, bot_elevation=0;
+    for (auto point :*input_cloud) {
+      float elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) *100;
+      if(elevation>max_elevation)
+        max_elevation=elevation;
+      else if(elevation<min_elevation)
+        min_elevation=elevation;
+      if(elevation > 300)
+        cnt_above++;
+      else if(elevation < -2400)
+        cnt_below++;
+      if(elevation>top_elevation)
+        top_elevation=elevation;
+      else if(elevation<bot_elevation)
+        bot_elevation=elevation;
+    }
 
     // int cnt = 0;
     // int elevation;
@@ -174,10 +185,13 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // }
 
     static int counter=0;
+    std::cout << counter +1 << "=> Elev max: " << max_elevation << " | Elev min: " << min_elevation << endl;
+    std::cout << "TOP ELEVATION: " << top_elevation << " | BOTTOM ELEVATION: " << bot_elevation << endl;
+    std::cout << "Above 3: " << cnt_above << " | Below -24: " << cnt_below << endl;
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
 
-    std::cout << counter+1 << " - " << input_cloud->size() << endl;
+    //std::cout << counter+1 << " - " << input_cloud->size() << endl;
 
     auto start_ri = std::chrono::high_resolution_clock::now();
     range_image.createFromPointCloud(*input_cloud, sensor_parameters.angular_resolution_horizontal, sensor_parameters.angular_resolution_vertical, sensor_parameters.max_angle_width, sensor_parameters.max_angle_height,
@@ -185,7 +199,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     auto stop_ri = std::chrono::high_resolution_clock::now();                                 
     auto duration_ri = std::chrono::duration_cast<std::chrono::milliseconds>(stop_ri - start_ri);
 
-    std::cout << range_image << "\n";
+    //std::cout << range_image << "\n";
 
     float* ranges = range_image.getRangesArray();
 
