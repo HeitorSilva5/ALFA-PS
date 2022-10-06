@@ -151,11 +151,15 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
     }
 
-    float max_elevation=0, min_elevation=0;
+    float max_elevation=0, min_elevation=0, max_azimuth=0;
     int cnt_above=0, cnt_below=0;
     static float top_elevation = 0, bot_elevation=0;
     for (auto point :*input_cloud) {
       float elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) *100;
+      const auto a = std::atan2(point.y, point.x);
+      float azimuth = (float) ((point.y >= 0 ? a : a + M_PI * 2) * (180.0f/M_PI)) *100;
+      if(azimuth>max_azimuth)
+        max_azimuth=azimuth;
       if(elevation>max_elevation)
         max_elevation=elevation;
       else if(elevation<min_elevation)
@@ -187,6 +191,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     static int counter=0;
     std::cout << counter +1 << "=> Elev max: " << max_elevation << " | Elev min: " << min_elevation << endl;
     std::cout << "TOP ELEVATION: " << top_elevation << " | BOTTOM ELEVATION: " << bot_elevation << endl;
+    std::cout << "TOP AZIMUTH: " << max_azimuth << endl;
     std::cout << "Above 3: " << cnt_above << " | Below -24: " << cnt_below << endl;
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
