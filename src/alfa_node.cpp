@@ -68,7 +68,7 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
         {   
             std::cout << pointcloud_index << "ELEVATION: " << elevation << " | a16_PTS: " << a16_points[1] << "  " << a16_points[2] << "  " << a16_points[3] << endl;
         }
-        memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*3);
+        memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
         pointcloud_index++;
     }
 }
