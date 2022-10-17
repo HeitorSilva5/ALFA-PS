@@ -52,23 +52,23 @@ alfa_msg::AlfaConfigure::Response AlfaNode::process_config(alfa_msg::AlfaConfigu
 void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud, u64 *pointer)
 {
     int pointcloud_index = 0;
-    uint16_t a16_points[4];
+    uint16_t a16_points[3];
     int16_t elevation;
-    a16_points[0] = 0;
+    //a16_points[3] = 0;
     for (auto point :*input_cloud){
         //elevation
         elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) *RES_MULTIPLIER;
-        a16_points[1] = elevation;
+        a16_points[0] = elevation;
         //azimuth
         const auto a = std::atan2(point.y, point.x);
-        a16_points[2] = (float) ((point.y >= 0 ? a : a + M_PI * 2) * (180.0f/M_PI)) *RES_MULTIPLIER;
+        a16_points[1] = (float) ((point.y >= 0 ? a : a + M_PI * 2) * (180.0f/M_PI)) *RES_MULTIPLIER;
         //range
-        a16_points[3] = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z) *RES_MULTIPLIER;
+        a16_points[2] = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z) *RES_MULTIPLIER;
         if(pointcloud_index < 16 || (pointcloud_index>=32 && pointcloud_index <=47) || (input_cloud->size()-pointcloud_index<10))
         {   
-            std::cout << pointcloud_index << "ELEVATION: " << elevation << " | a16_PTS: " << a16_points[1] << "  " << a16_points[2] << "  " << a16_points[3] << endl;
+            std::cout << pointcloud_index << "ELEVATION: " << elevation << " | a16_PTS: " << a16_points[0] << "  " << a16_points[1] << "  " << a16_points[2] << endl;
         }
-        memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
+        memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*3);
         pointcloud_index++;
     }
 }
