@@ -24,11 +24,14 @@ struct sensorParameters
 {
     int sensor_tag;
     float angular_resolution_horizontal;
+    float angular_resolution_horizontal_rads;
     float angular_resolution_vertical;
+    float angular_resolution_vertical_rads;
     float min_vertical_angle;
     float max_angle_width;
     float max_angle_height;
     int max_sensor_distance;
+    int n_columns;
 };
 
 class AlfaPsCompressor : public  AlfaNode
