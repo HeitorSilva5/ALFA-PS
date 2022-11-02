@@ -67,6 +67,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
 
 
     setSensorParameters();
+    
 
     output_metrics.message_tag = "Ps-Compression performance";
     
@@ -108,7 +109,10 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
       configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
       configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
-      configs.push_back(sensor_parameters.max_sensor_distance*1000/255);                                                //slope for range normalizar between [0-255]
+      if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
+        configs.push_back(0);                                                                                           
+      else if(sensor_parameters.max_sensor_distance==120)
+        configs.push_back(1); 
       write_hardware_registers(configs, hw32_vptr, 2);
     }
 
@@ -368,7 +372,7 @@ void AlfaPsCompressor::getColorForFloat (float value, unsigned char& r, unsigned
 alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::AlfaConfigure::Request &req)
 {
     cout << "Updating configuration Parameters" << endl;
-    if(req.configurations.size()==8)
+    if(req.configurations.size()==10)
     {
         sensor_parameters.sensor_tag = req.configurations[0].config;
         sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[1].config);
@@ -378,24 +382,26 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
         sensor_parameters.max_angle_width = (float) (req.configurations[3].config * (M_PI/180.0f));
         sensor_parameters.max_angle_height = (float) (req.configurations[4].config * (M_PI/180.0f));
         sensor_parameters.max_sensor_distance = req.configurations[5].config;
+        sensor_parameters.min_vertical_angle = req.configurations[6].config;
+        sensor_parameters.n_columns = req.configurations[7].config;
+        NOF = req.configurations[8].config;
         compression_params.clear();
-        if(req.configurations[6].config==10)
+        if(req.configurations[9].config==10)
         {
           compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
           compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
         }
-        else if(req.configurations[6].config==11)
+        else if(req.configurations[9].config==11)
         {
           compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
           compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_RLE);
         }
         else
         {
-          compression_lvl = req.configurations[6].config;
+          compression_lvl = req.configurations[9].config;
           compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
           compression_params.push_back(compression_lvl);
         }
-        NOF = req.configurations[7].config;
         default_configurations[0][0].config = req.configurations[0].config;
         default_configurations[0][1].config = req.configurations[1].config;
         default_configurations[0][2].config = req.configurations[2].config;
@@ -404,6 +410,26 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
         default_configurations[0][5].config = req.configurations[5].config;
         default_configurations[0][6].config = req.configurations[6].config;
         default_configurations[0][7].config = req.configurations[7].config;
+        default_configurations[0][8].config = req.configurations[8].config;
+        default_configurations[0][9].config = req.configurations[9].config;
+
+        if(hw)
+        {
+          vector<int32_t> configs;
+          configs.push_back(0);
+          configs.push_back(0);
+          configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
+          configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
+          configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
+          configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
+          configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
+          if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
+            configs.push_back(0);                                                                                           
+          else if(sensor_parameters.max_sensor_distance==120)
+            configs.push_back(1);                                                       
+          write_hardware_registers(configs, hw32_vptr, 2);
+        }
+
     }
     alfa_msg::AlfaConfigure::Response response;
     response.return_status = 1;
@@ -488,7 +514,7 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
     // if(counter==1 || counter==15 || counter==30 || counter==45 || counter==60 || counter==75 || counter==90){
     //     ROS_INFO("Frame number %d\n", counter);
     //     ROS_INFO("Range image processing time: %f\n", duration_ri);
-    //     ROS_INFO("PNG processing time: %f\n", duration_png);
+         ROS_INFO("PNG processing time: %f\n", duration_png);
     //     ROS_INFO("Total processing time: %f\n", duration_png + duration_ri);
     //     ROS_INFO("Current FPS: %f\n", current_fps);
     //     ROS_INFO("Current PPS: %f\n", current_pps);
