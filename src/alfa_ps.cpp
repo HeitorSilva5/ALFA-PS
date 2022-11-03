@@ -87,28 +87,22 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
 
-      // vector<int32_t> configs;
-      // configs.push_back(0);
-      // configs.push_back(0);
-      // configs.push_back(20);                                          //d_azimuth
-      // configs.push_back(200);                                         //d_elevation
-      // configs.push_back((sensor_parameters.min_vertical_angle)*100);  //min_vert_angle
-      // configs.push_back(sensor_parameters.sensor_tag);                //n_lines
-      // write_hardware_registers(configs, hw32_vptr, 2);
-      // std::cout << hw32_vptr[2] << endl;
-      // std::cout << hw32_vptr[3] << endl;
-      // std::cout << hw32_vptr[4] << endl;
-      // std::cout << hw32_vptr[5] << endl;
+
     if(hw)
     {
       vector<int32_t> configs;
       configs.push_back(0);
       configs.push_back(0);
-      configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
-      configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
-      configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
-      configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
-      configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
+      //configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
+      configs.push_back(0);
+      //configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
+      configs.push_back(2);
+      //configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
+      configs.push_back(2);
+      //configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
+      configs.push_back(2);
+      //configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
+      configs.push_back(0);
       if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
         configs.push_back(0);                                                                                           
       else if(sensor_parameters.max_sensor_distance==120)
