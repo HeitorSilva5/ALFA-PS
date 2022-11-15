@@ -99,7 +99,7 @@ unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
 
         for(uint j=0; j<8; j++){
             unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);
-            if(a8_points[j]!=0)
+            if(a8_points[j]>0 && a8_points[j]<=255)
                 r = g = b = static_cast<unsigned char>(a8_points[j]);
             else{
                 r = 150;
