@@ -228,7 +228,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     unsigned char* rgb_image = getVisualImage(ranges, range_image.width, range_image.height, 0, sensor_parameters.max_sensor_distance, true);
 
-    std::cout << range_image.width << " | " << range_image.height << endl;
+    // std::cout << range_image.width << " | " << range_image.height << endl;
 
     auto start_png = std::chrono::high_resolution_clock::now();
     //pcl::io::saveRgbPNGFile(file_name, rgb_image, range_image.width, range_image.height);
