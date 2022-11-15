@@ -133,7 +133,6 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     output_metrics.metrics.clear();
     static int counter=0;
 
-    vector<int32_t> configs;
     if(hw)
     {
       //store point cloud
@@ -144,6 +143,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
       //create range image
       auto start_RI_hw = std::chrono::high_resolution_clock::now();
+      vector<int32_t> configs;
       configs.push_back(1);
       configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
@@ -171,6 +171,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       cout << "STORE TIME:" << duration_store_hw.count() << "ms" << endl;
       cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
       cout << "READ TIME:" << duration_read_hw.count() << "ms" << endl;
+      cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
     }
 
     // float max_elevation=0, min_elevation=0, max_azimuth=0;
