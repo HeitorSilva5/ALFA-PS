@@ -86,7 +86,7 @@ public:
      * @param size The number of points to be read from the memory
      * @return Returns a pcl object with points in the PointXYZI format
      */
-    virtual pcl::PointCloud<pcl::PointXYZI>::Ptr  read_hardware_pointcloud(u64 *pointer, uint size);
+    virtual unsigned char* read_hardware_pointcloud(u64 *pointer, uint size);
 
     /**
      * @brief read_hardware_registers Reads a user-defined number of 32bits registers. Useful to communicate with AXI-Lite registers

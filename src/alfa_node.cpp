@@ -68,10 +68,14 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
         range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z) *RANGE_MULTIPLIER;
         a16_points[2] = range;
         a16_points[3] = range >> 16;
+
+        #ifdef DEBUG
         if(pointcloud_index < 16 || (pointcloud_index>=32 && pointcloud_index <=47) || (input_cloud->size()-pointcloud_index<10))
         {   
             std::cout << pointcloud_index << " RANGE: " << range << " | a16_PTS: " << a16_points[0] << "  " << a16_points[1] << "  " << a16_points[2] << " " << a16_points[3] << endl;
         }
+        #endif
+
         memcpy((void*)(pointer+pointcloud_index),a16_points,sizeof(int16_t)*4);
         pointcloud_index++;
     }
@@ -79,27 +83,38 @@ void AlfaNode::store_pointcloud_hardware(pcl::PointCloud<pcl::PointXYZI>::Ptr in
 
 
 
-pcl::PointCloud<pcl::PointXYZI>::Ptr AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
+unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
 {
-    pcl::PointCloud<pcl::PointXYZI>::Ptr return_cloud;
-    return_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
-    for (uint i=0; i<size;i++) {
-        pcl::PointXYZI p;
-        int16_t a16_points[4];
-        memcpy((void*)(a16_points), pointer+i,sizeof(int16_t)*4);
-        p.x = (a16_points[0])/float(RES_MULTIPLIER);
-        p.y = (a16_points[1])/float(RES_MULTIPLIER);
-        p.z = (a16_points[2])/float(RES_MULTIPLIER);
-        p.intensity = (a16_points[3])/float(INTENSITY_MULTIPLIER);
-        return_cloud->push_back(p);
-        #ifdef DEBUG
+    // pcl::PointCloud<pcl::PointXYZI>::Ptr return_cloud;
+    // return_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
 
-        cout<< "First bits: "<< hex<< a16_points[0]<< " Secound bits: "<< hex<< a16_points[1]<<endl;
-        cout << "Obtained coordinate: X:"<< hex<< p.x<< "; Y: "<<hex <<p.y<< "; Z: "<<hex<<p.z<< "; Intensity: "<<p.intensity<<endl;
+    int arraySize = 3 * size;
+    int ddrSize = size/8;
+    unsigned char* data = new unsigned char[arraySize];
+    unsigned char* dataPtr = data;
+    uint8_t a8_points[8];
+    for (uint i=0; i<ddrSize;i++) {
+
+        memcpy((void*)(a8_points), pointer+i,sizeof(a8_points)*8);
+
+        for(uint j=0; j<8; j++){
+            unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);
+            if(a8_points[j]!=0)
+                r = g = b = a8_points[j];
+            else{
+                r = 150;
+                g = 200;
+                b = 150;
+            }      
+        }
+        
+        #ifdef DEBUG
+        // cout<< "First bits: "<< hex<< a16_points[0]<< " Secound bits: "<< hex<< a16_points[1]<<endl;
+        // cout << "Obtained coordinate: X:"<< hex<< p.x<< "; Y: "<<hex <<p.y<< "; Z: "<<hex<<p.z<< "; Intensity: "<<p.intensity<<endl;
         #endif
 
     }
-    return return_cloud;
+    return data;
 }
 
 vector<uint32_t> AlfaNode::read_hardware_registers(uint32_t *pointer, uint size)

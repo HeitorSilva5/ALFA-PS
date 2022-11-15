@@ -131,14 +131,18 @@ void AlfaPsCompressor::setSensorParameters()
 void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud)
 {   
     output_metrics.metrics.clear();
-
+    static int counter=0;
 
     vector<int32_t> configs;
     if(hw)
     {
-      auto start_total_hw = std::chrono::high_resolution_clock::now();
+      //store point cloud
+      auto start_store_hw = std::chrono::high_resolution_clock::now();
       store_pointcloud_hardware(input_cloud,ddr_pointer);
       usleep(10);
+      auto stop_store_hw = std::chrono::high_resolution_clock::now();
+
+      //create range image
       auto start_RI_hw = std::chrono::high_resolution_clock::now();
       configs.push_back(1);
       configs.push_back(input_cloud->size());
@@ -147,10 +151,26 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
         
       }
       auto stop_RI_hw = std::chrono::high_resolution_clock::now();
-      auto duration_total_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_RI_hw - start_total_hw);
+
+      // read range image
+      auto start_read_hw = std::chrono::high_resolution_clock::now();
+      unsigned char * rgb_image_hw = read_hardware_pointcloud(ddr_pointer, sensor_parameters.n_columns*sensor_parameters.sensor_tag);
+      auto stop_read_hw = std::chrono::high_resolution_clock::now();
+
+      //PNG
+      file_name_hw="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + "_hw.png";
+      auto start_png_hw = std::chrono::high_resolution_clock::now();
+      image = cv::Mat(sensor_parameters.sensor_tag, sensor_parameters.n_columns, CV_8UC3, static_cast<void*> (rgb_image_hw));
+      cv::imwrite(file_name_hw, image, compression_params);
+      auto stop_png_hw = std::chrono::high_resolution_clock::now();
+
+      auto duration_store_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_store_hw - start_store_hw);
       auto duration_RI_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_RI_hw - start_RI_hw);
-      cout << "TOTAL TIME:" << duration_total_hw.count() << "ms" << endl;
+      auto duration_read_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_read_hw - start_read_hw);
+      auto duration_png_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_png_hw - start_png_hw);
+      cout << "STORE TIME:" << duration_store_hw.count() << "ms" << endl;
       cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
+      cout << "READ TIME:" << duration_read_hw.count() << "ms" << endl;
     }
 
     // float max_elevation=0, min_elevation=0, max_azimuth=0;
@@ -186,7 +206,6 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // }
 
 
-    static int counter=0;
     // std::cout << counter +1 << "=> Elev max: " << max_elevation << " | Elev min: " << min_elevation << endl;
     // std::cout << "TOP ELEVATION: " << top_elevation << " | BOTTOM ELEVATION: " << bot_elevation << endl;
     // std::cout << "TOP AZIMUTH: " << max_azimuth << endl;
@@ -508,7 +527,7 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
     // if(counter==1 || counter==15 || counter==30 || counter==45 || counter==60 || counter==75 || counter==90){
     //     ROS_INFO("Frame number %d\n", counter);
     //     ROS_INFO("Range image processing time: %f\n", duration_ri);
-         ROS_INFO("PNG processing time: %f\n", duration_png);
+    //     ROS_INFO("PNG processing time: %f\n", duration_png);
     //     ROS_INFO("Total processing time: %f\n", duration_png + duration_ri);
     //     ROS_INFO("Current FPS: %f\n", current_fps);
     //     ROS_INFO("Current PPS: %f\n", current_pps);

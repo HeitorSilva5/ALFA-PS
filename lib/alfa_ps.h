@@ -55,6 +55,7 @@ class AlfaPsCompressor : public  AlfaNode
         cv::Mat image;
     
         string file_name;
+        string file_name_hw;
         Eigen::Affine3f sensor_pose = (Eigen::Affine3f)Eigen::Translation3f(0.0f, 0.0f, 0.0f);
         pcl::RangeImage::CoordinateFrame coordinate_frame = pcl::RangeImage::LASER_FRAME;
         float noise_level= 0.00f;
