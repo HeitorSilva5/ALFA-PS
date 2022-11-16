@@ -92,26 +92,20 @@ unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
     int ddrSize = size/8;
     unsigned char* data = new unsigned char[arraySize];
     unsigned char* dataPtr = data;
-    uint8_t a8_points[8];
     for (uint i=0; i<ddrSize;i++) {
-
+        uint8_t a8_points[8];
         memcpy((void*)(a8_points), pointer+i,sizeof(uint8_t)*8);
-        if(i==900){
-            std::cout << a8_points[0] << endl;
-            std::cout << a8_points[1] << endl;
-            std::cout << a8_points[2] << endl;
-            std::cout << a8_points[3] << endl;
-            std::cout << a8_points[4] << endl;
-            std::cout << a8_points[5] << endl;
-            std::cout << a8_points[6] << endl;
-            std::cout << a8_points[7] << endl;
-        }
         for(uint j=0; j<8; j++){
-            
+            unsigned char point = a8_points[j];
+            if(i==900){
+            std::cout << a8_points[j] << " | " << point << endl;
+            }
             unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);
-            if(a8_points[j]>0 && a8_points[j]<=255)
-                r = g = b = static_cast<unsigned char>(a8_points[j]);
+            if(a8_points[j]>0 && a8_points[j]<=255){
+                r = g = b = point;
+                // r = g = b = static_cast<unsigned char>(a8_points[j]);
                 // r = g = b = 150;
+            }
             else{
                 r = 150;
                 g = 200;
