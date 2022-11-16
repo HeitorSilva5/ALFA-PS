@@ -96,7 +96,16 @@ unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
     for (uint i=0; i<ddrSize;i++) {
 
         memcpy((void*)(a8_points), pointer+i,sizeof(uint8_t)*8);
-
+        if(i==900){
+            std::cout << a8_points[0] << endl;
+            std::cout << a8_points[1] << endl;
+            std::cout << a8_points[2] << endl;
+            std::cout << a8_points[3] << endl;
+            std::cout << a8_points[4] << endl;
+            std::cout << a8_points[5] << endl;
+            std::cout << a8_points[6] << endl;
+            std::cout << a8_points[7] << endl;
+        }
         for(uint j=0; j<8; j++){
             
             unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);

@@ -87,6 +87,15 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
 
+    cv::Mat image2;
+    image2 = cv::imread("clouds/CompressedClouds/PNGS/rosbag_64_0_hw.png" , CV_LOAD_IMAGE_GRAYSCALE);
+      
+    if(! image2.data ){
+      std::cout <<  "Could not open or find the image" << std::endl ;
+    }else{
+    std::cout<< "Width: " << image2.cols << std::endl;
+    std::cout<< "Height: " << image2.rows << std::endl; 
+    }
 
     if(hw)
     {
