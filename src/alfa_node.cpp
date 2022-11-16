@@ -95,14 +95,14 @@ unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
     uint8_t a8_points[8];
     for (uint i=0; i<ddrSize;i++) {
 
-        memcpy((void*)(a8_points), pointer+i,sizeof(a8_points)*8);
+        memcpy((void*)(a8_points), pointer+i,sizeof(uint8_t)*8);
 
         for(uint j=0; j<8; j++){
             
             unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);
             if(a8_points[j]>0 && a8_points[j]<=255)
-                // r = g = b = static_cast<unsigned char>(a8_points[j]);
-                r = g = b = 150;
+                r = g = b = static_cast<unsigned char>(a8_points[j]);
+                // r = g = b = 150;
             else{
                 r = 150;
                 g = 200;
