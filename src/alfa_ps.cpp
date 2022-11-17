@@ -94,7 +94,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       std::cout <<  "Could not open or find the image" << std::endl ;
     }else{
     std::cout<< "Width: " << image2.cols << std::endl;
-    std::cout<< "Height: " << image2.rows << std::endl; 
+    std::cout<< "Height: " << image2.rows << std::endl;
     }
 
     if(hw)
