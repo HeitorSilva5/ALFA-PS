@@ -102,6 +102,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       vector<int32_t> configs;
       configs.push_back(0);
       configs.push_back(0);
+      configs.push_back(0);
       //configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
       configs.push_back(0);
       //configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
@@ -116,7 +117,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
         configs.push_back(0);                                                                                           
       else if(sensor_parameters.max_sensor_distance==120)
         configs.push_back(1); 
-      write_hardware_registers(configs, hw32_vptr, 2);
+      write_hardware_registers(configs, hw32_vptr, 3);
     }
 
  }
@@ -222,9 +223,9 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // std::cout << "TOP AZIMUTH: " << max_azimuth << endl;
     // std::cout << "Above 3: " << cnt_above << " | Below -24: " << cnt_below << endl;
 
-    file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
+    file_name="./clouds/CompressedClouds/PNGS/ahn_rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
 
-    //std::cout << counter+1 << " - " << input_cloud->size() << endl;
+    std::cout << counter+1 << " - " << input_cloud->size() << endl;
 
     auto start_ri = std::chrono::high_resolution_clock::now();
     range_image.createFromPointCloud(*input_cloud, sensor_parameters.angular_resolution_horizontal_rads, sensor_parameters.angular_resolution_vertical_rads, sensor_parameters.max_angle_width, sensor_parameters.max_angle_height,
@@ -443,6 +444,7 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
           vector<int32_t> configs;
           configs.push_back(0);
           configs.push_back(0);
+          configs.push_back(0);
           configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
           configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
           configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
@@ -452,7 +454,7 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
             configs.push_back(0);                                                                                           
           else if(sensor_parameters.max_sensor_distance==120)
             configs.push_back(1);                                                       
-          write_hardware_registers(configs, hw32_vptr, 2);
+          write_hardware_registers(configs, hw32_vptr, 3);
         }
 
     }
