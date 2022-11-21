@@ -160,7 +160,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       while(hw32_vptr[2]!=1){
         
       }
-      usleep(10000);
+      //usleep(10000);
       auto stop_RI_hw = std::chrono::high_resolution_clock::now();
 
       // read range image
