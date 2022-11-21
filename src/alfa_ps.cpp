@@ -148,8 +148,8 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       //store point cloud
       auto start_store_hw = std::chrono::high_resolution_clock::now();
       store_pointcloud_hardware(input_cloud,ddr_pointer);
-      usleep(10);
       auto stop_store_hw = std::chrono::high_resolution_clock::now();
+      usleep(10);       //VERIFICAR!!!
 
       //create range image
       auto start_RI_hw = std::chrono::high_resolution_clock::now();
@@ -157,8 +157,15 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       configs.push_back(1);
       configs.push_back(input_cloud->size());
       write_hardware_registers(configs, hw32_vptr);
-      while(hw32_vptr[2]!=1){
-        
+      int hardware_finish = 0;
+      int value = 0;
+      while(!hardware_finish){
+        vector<uint32_t> hardware_result = read_hardware_registers(hw32_vptr, 3);
+        value = hardware_result[2];
+        if(value==1)
+          hardware_finish = 1;
+        else
+          usleep(1);
       }
       //usleep(10000);
       auto stop_RI_hw = std::chrono::high_resolution_clock::now();
