@@ -105,7 +105,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       configs.push_back(0);
       if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
         configs.push_back(0);                                                                                           
-      else if(sensor_parameters.max_sensor_distance==120)
+      else if(sensor_parameters.max_sensor_distance==80)
         configs.push_back(1); 
       write_hardware_registers(configs, hw32_vptr, 3);
     }
