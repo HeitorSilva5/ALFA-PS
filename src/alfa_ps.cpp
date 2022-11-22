@@ -124,7 +124,7 @@ void AlfaPsCompressor::setSensorParameters()
     sensor_parameters.min_vertical_angle = -24.8;                                                 //hdl64 -> -24.8
     sensor_parameters.max_angle_width = (float) (360.0f * (M_PI/180.0f));
     sensor_parameters.max_angle_height = (float) (90.0f * (M_PI/180.0f));
-    sensor_parameters.max_sensor_distance = 120;
+    sensor_parameters.max_sensor_distance = 80;
     sensor_parameters.n_columns = 1800;
 }
 
@@ -181,13 +181,13 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
     }
 
-    static float max_range=0;
-    for (auto point :*input_cloud) {
-      float range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
-      if(range>max_range)
-        max_range = range;
-    }
-    std::cout << counter << ": Max Range" << max_range << endl;
+    // static float max_range=0;
+    // for (auto point :*input_cloud) {
+    //   float range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
+    //   if(range>max_range)
+    //     max_range = range;
+    // }
+    // std::cout << counter << ": Max Range" << max_range << endl;
 
     // float max_elevation=0, min_elevation=0, max_azimuth=0;
     // int cnt_above=0, cnt_below=0;
@@ -227,7 +227,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // std::cout << "TOP AZIMUTH: " << max_azimuth << endl;
     // std::cout << "Above 3: " << cnt_above << " | Below -24: " << cnt_below << endl;
 
-    file_name="./clouds/CompressedClouds/PNGS/ahn_rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
+    file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
     // string file_name1 = "clouds/pointclouds/savedClouds/64/new_ascii_" + std::to_string(counter) + ".pcd";
 
     std::cout << counter+1 << " - " << input_cloud->size() << endl;
