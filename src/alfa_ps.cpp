@@ -87,16 +87,6 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
     compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
 
-    cv::Mat image2;
-    image2 = cv::imread("clouds/CompressedClouds/PNGS/rosbag_64_0_hw.png" , CV_LOAD_IMAGE_GRAYSCALE);
-      
-    if(! image2.data ){
-      std::cout <<  "Could not open or find the image" << std::endl ;
-    }else{
-    std::cout<< "Width: " << image2.cols << std::endl;
-    std::cout<< "Height: " << image2.rows << std::endl;
-    }
-
     if(hw)
     {
       vector<int32_t> configs;
@@ -167,7 +157,6 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
         else
           usleep(1);
       }
-      //usleep(10000);
       auto stop_RI_hw = std::chrono::high_resolution_clock::now();
 
       // read range image
@@ -191,6 +180,14 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       cout << "READ TIME:" << duration_read_hw.count() << "us" << endl;
       cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
     }
+
+    static float max_range=0;
+    for (auto point :*input_cloud) {
+      float range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
+      if(range>max_range)
+        max_range = range;
+    }
+    std::cout << counter << ": Max Range" << max_range << endl;
 
     // float max_elevation=0, min_elevation=0, max_azimuth=0;
     // int cnt_above=0, cnt_below=0;
@@ -231,6 +228,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // std::cout << "Above 3: " << cnt_above << " | Below -24: " << cnt_below << endl;
 
     file_name="./clouds/CompressedClouds/PNGS/ahn_rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
+    // string file_name1 = "clouds/pointclouds/savedClouds/64/new_ascii_" + std::to_string(counter) + ".pcd";
 
     std::cout << counter+1 << " - " << input_cloud->size() << endl;
 
@@ -260,6 +258,8 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     free(ranges);
     free(rgb_image);
+
+    // pcl::io::savePCDFileASCII(file_name1, *input_cloud);
 
     if(counter == (NOF-1)){
         avg_metrics();
@@ -316,7 +316,8 @@ unsigned char* AlfaPsCompressor::getVisualImage (const float* float_image, int w
     
     if (!std::isfinite(value)) 
     {
-      getColorForFloat(value, r, g, b);
+      //getColorForFloat(value, r, g, b);
+      r = g = b = 0;
       continue;
     }
     

@@ -104,9 +104,7 @@ unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
                 // r = g = b = 150;
             }
             else{
-                r = 150;
-                g = 200;
-                b = 150;
+                r = g = b = 0;
             }      
         }
         
