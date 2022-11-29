@@ -13,7 +13,7 @@ int main(int argc, char **argv)
        if (!ros::master::check()) {
            cout <<"Failed to inicialize ros"<<endl;
        }
-       alfa_msg::ConfigMessage parameter1,parameter2,parameter3,parameter4,parameter5,parameter6,parameter7,parameter8,parameter9, parameter10;
+       alfa_msg::ConfigMessage parameter1,parameter2,parameter3,parameter4,parameter5,parameter6,parameter7,parameter8,parameter9,parameter10,parameter11;
        
        parameter1.config = 64;
        parameter1.config_name = "Name tag";
@@ -45,6 +45,9 @@ int main(int argc, char **argv)
        parameter10.config = 1;
        parameter10.config_name = "Compression level";
 
+       parameter11.config = 0;
+       parameter11.config_name = "HW Over Sampling";
+
       vector<alfa_msg::ConfigMessage> default_configurations;
       default_configurations.push_back(parameter1);
       default_configurations.push_back(parameter2);
@@ -56,6 +59,7 @@ int main(int argc, char **argv)
       default_configurations.push_back(parameter8);
       default_configurations.push_back(parameter9);
       default_configurations.push_back(parameter10);
+      default_configurations.push_back(parameter11);
 
     AlfaPsCompressor new_node(NODE_NAME,NODE_TYPE,&default_configurations);
     while(ros::ok())

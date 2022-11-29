@@ -43,6 +43,7 @@ class AlfaPsCompressor : public  AlfaNode
         unsigned char* getVisualImage (const float* float_image, int width, int height, float min_value, float max_value, bool gray_scale);
         void getColorForFloat (float value, unsigned char& r, unsigned char& g, unsigned char& b);
         void setSensorParameters();
+        void write_hardware_configurations();
         alfa_msg::AlfaMetrics output_metrics;
         void calculate_metrics(int cloud_size, string png_path, float duration_ri, float duration_png, int counter);
         void avg_metrics();
@@ -71,6 +72,7 @@ class AlfaPsCompressor : public  AlfaNode
         double total_points;
 
         bool hw;
+        bool over_sampling;
         u64 *ddr_pointer;
         u_int32_t *hw32_vptr;
 

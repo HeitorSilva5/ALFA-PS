@@ -96,18 +96,9 @@ unsigned char* AlfaNode::read_hardware_pointcloud(u64 *pointer, uint size)
         uint8_t a8_points[8];
         memcpy((void*)(a8_points), pointer+i,sizeof(uint8_t)*8);
         for(uint j=0; j<8; j++){
-            unsigned char point = a8_points[j];
             unsigned char& r=*(dataPtr++), & g=*(dataPtr++), & b=*(dataPtr++);
-            if(a8_points[j]>0 && a8_points[j]<=255){
-                r = g = b = point;
-                // r = g = b = static_cast<unsigned char>(a8_points[j]);
-                // r = g = b = 150;
-            }
-            else{
-                r = g = b = 0;
-            }      
+            r = g = b = static_cast<unsigned char>(a8_points[j]);
         }
-        
         #ifdef DEBUG
         // cout<< "First bits: "<< hex<< a16_points[0]<< " Secound bits: "<< hex<< a16_points[1]<<endl;
         // cout << "Obtained coordinate: X:"<< hex<< p.x<< "; Y: "<<hex <<p.y<< "; Z: "<<hex<<p.z<< "; Intensity: "<<p.intensity<<endl;

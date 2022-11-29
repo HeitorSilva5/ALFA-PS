@@ -33,6 +33,8 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     total_points = 0;
     points_per_second = 0;
     frames_per_second = 0;
+
+    over_sampling = false;
     
     NOF=76;
 
@@ -44,25 +46,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
 
     if(hw)
     {
-      vector<int32_t> configs;
-      configs.push_back(0);
-      configs.push_back(0);
-      configs.push_back(0);
-      //configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
-      configs.push_back(0);
-      //configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
-      configs.push_back(3);
-      //configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
-      configs.push_back(2);
-      //configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
-      configs.push_back(3);
-      //configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
-      configs.push_back(0);
-      if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
-        configs.push_back(0);                                                                                           
-      else if(sensor_parameters.max_sensor_distance==80)
-        configs.push_back(1); 
-      write_hardware_registers(configs, hw32_vptr, 3);
+      write_hardware_configurations();
     }
 
  }
@@ -116,13 +100,23 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
       // read range image
       auto start_read_hw = std::chrono::high_resolution_clock::now();
-      unsigned char * rgb_image_hw = read_hardware_pointcloud(ddr_pointer, sensor_parameters.n_columns*sensor_parameters.sensor_tag*2);
+      unsigned char * rgb_image_hw;
+      if(!over_sampling)
+        rgb_image_hw = read_hardware_pointcloud(ddr_pointer, sensor_parameters.n_columns*sensor_parameters.sensor_tag);
+      else
+        rgb_image_hw = read_hardware_pointcloud(ddr_pointer, sensor_parameters.n_columns*sensor_parameters.sensor_tag*2);
       auto stop_read_hw = std::chrono::high_resolution_clock::now();
 
       //PNG
-      file_name_hw="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag*2) + "_" + std::to_string(counter) + "_hw.png";
       auto start_png_hw = std::chrono::high_resolution_clock::now();
-      image = cv::Mat(sensor_parameters.sensor_tag*2, sensor_parameters.n_columns, CV_8UC3, static_cast<void*> (rgb_image_hw));
+      if(!over_sampling){
+        file_name_hw="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + "_hw.png";
+        image = cv::Mat(sensor_parameters.sensor_tag, sensor_parameters.n_columns, CV_8UC3, static_cast<void*> (rgb_image_hw));
+      }
+      else{
+        file_name_hw="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + "_hw_OS.png";
+        image = cv::Mat(sensor_parameters.sensor_tag*2, sensor_parameters.n_columns, CV_8UC3, static_cast<void*> (rgb_image_hw));
+      }
       cv::imwrite(file_name_hw, image, compression_params);
       auto stop_png_hw = std::chrono::high_resolution_clock::now();
 
@@ -231,6 +225,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     }
 
     counter++;
+
 }
 
 unsigned char* AlfaPsCompressor::getVisualImage (const float* float_image, int width, int height, float min_value, float max_value, bool gray_scale) 
@@ -362,7 +357,7 @@ void AlfaPsCompressor::getColorForFloat (float value, unsigned char& r, unsigned
 alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::AlfaConfigure::Request &req)
 {
     cout << "Updating configuration Parameters" << endl;
-    if(req.configurations.size()==10)
+    if(req.configurations.size()==11)
     {
         sensor_parameters.sensor_tag = req.configurations[0].config;
         sensor_parameters.angular_resolution_horizontal = (float) (req.configurations[1].config);
@@ -392,6 +387,10 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
           compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
           compression_params.push_back(compression_lvl);
         }
+        if(req.configurations[10].config == 1)
+          over_sampling = true;
+        else
+          over_sampling = false;
         default_configurations[0][0].config = req.configurations[0].config;
         default_configurations[0][1].config = req.configurations[1].config;
         default_configurations[0][2].config = req.configurations[2].config;
@@ -405,26 +404,69 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
 
         if(hw)
         {
-          vector<int32_t> configs;
-          configs.push_back(0);
-          configs.push_back(0);
-          configs.push_back(0);
-          configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
-          configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
-          configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
-          configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
-          configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
-          if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
-            configs.push_back(0);                                                                                           
-          else if(sensor_parameters.max_sensor_distance==120)
-            configs.push_back(1);                                                       
-          write_hardware_registers(configs, hw32_vptr, 3);
+          write_hardware_configurations();
         }
 
     }
     alfa_msg::AlfaConfigure::Response response;
     response.return_status = 1;
     return response;
+}
+
+void AlfaPsCompressor::write_hardware_configurations()
+{
+    vector<int32_t> configs;
+    configs.push_back(0);
+    configs.push_back(0);
+    configs.push_back(0);
+    switch(sensor_parameters.sensor_tag)
+    {
+      case 16:
+        configs.push_back(0);                                         //d_azimuth 0.2 = azimuth LUT[0]
+        if(!over_sampling){
+          configs.push_back(0);                                       //d_elevation 2 = elevation LUT[0]
+          configs.push_back(0);                                       //n_lines 16 = n_lines LUT[0]
+        }
+        else{
+          configs.push_back(1);                                       //d_elevation 1 = elevation LUT[1]
+          configs.push_back(1);                                       //n_lines 32 = n_lines LUT[1]
+        }
+        configs.push_back(0);                                         //min_vert_angle -15 = min_vert_angle LUT[0]
+        configs.push_back(0);                                         //n_columns 1800 = cols LUT[0]
+        configs.push_back(0);                                         //max range 100 = sloap LUT[0]
+        break;
+      case 32:
+        configs.push_back(0);                                         //d_azimuth 0.2 = azimuth LUT[0]
+        if(!over_sampling){
+          configs.push_back(2);                                       //d_elevation 1.29 = elevation LUT[2]
+          configs.push_back(1);                                       //n_lines 32 = n_lines LUT[1]
+        }
+        else{
+          configs.push_back(3);                                       //d_elevation 0.64 = elevation LUT[3]
+          configs.push_back(2);                                       //n_lines 64 = n_lines LUT[2]
+        }
+        configs.push_back(1);                                         //min_vert_angle -30 = min_vert_angle LUT[1]
+        configs.push_back(0);                                         //n_columns 1800 = cols LUT[0]
+        configs.push_back(0);                                         //max range 100 = sloap LUT[0]
+        break;
+      case 64:
+        configs.push_back(0);                                         //d_azimuth 0.2 = azimuth LUT[0]
+        if(!over_sampling){
+          configs.push_back(4);                                       //d_elevation 0.46 = elevation LUT[4]
+          configs.push_back(2);                                       //n_lines 64 = n_lines LUT[2]
+        }
+        else{
+          configs.push_back(5);                                       //d_elevation 0.23 = elevation LUT[5]
+          configs.push_back(3);                                       //n_lines 128 = n_lines LUT[3]
+        }
+        configs.push_back(2);                                         //min_vert_angle -24.8 = min_vert_angle LUT[2]
+        configs.push_back(0);                                         //n_columns 1800 = cols LUT[0]
+        configs.push_back(1);                                         //max range 80 = sloap LUT[1]
+        break;
+      default:
+        cout << "Invalid Sensor!" << endl;
+    }
+    write_hardware_registers(configs, hw32_vptr, 3);
 }
 
 void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float duration_ri, float duration_png, int counter)
