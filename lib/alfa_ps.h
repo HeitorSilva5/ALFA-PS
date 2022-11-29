@@ -47,7 +47,6 @@ class AlfaPsCompressor : public  AlfaNode
         void calculate_metrics(int cloud_size, string png_path, float duration_ri, float duration_png, int counter);
         void avg_metrics();
 
-        void publish_hardware();
 
     private:
         sensorParameters sensor_parameters;

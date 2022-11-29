@@ -19,51 +19,6 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     }
     else
     ROS_INFO("NAO ENTROU NO NMAP :(");
-    
-    // int16_t a16_points[4];
-    // a16_points[0] = 0x0201;
-    // a16_points[1] = 0x0103;
-    // a16_points[2] = 0x0302;
-    // a16_points[3] = 0x0201;
-    // memcpy((void*)(ddr_pointer), a16_points,sizeof(int32_t)*2);
-    // a16_points[0] = 0x0103;
-    // a16_points[1] = 0x0302;
-    // a16_points[2] = 0x0201;
-    // a16_points[3] = 0x0103;
-    // memcpy((void*)(ddr_pointer+1),a16_points,sizeof(int16_t)*4);
-    // a16_points[0] = 0x0302;
-    // a16_points[1] = 0x0000;
-    // a16_points[2] = 0x0000;
-    // a16_points[3] = 0x0000;
-    // memcpy((void*)(ddr_pointer+2),a16_points,sizeof(int16_t)*4);
-    // a16_points[0] = 0x0000;
-    // a16_points[1] = 0x0000;
-    // a16_points[2] = 0x0000;
-    // a16_points[3] = 0x0000;
-    // memcpy((void*)(ddr_pointer+3),a16_points,sizeof(int16_t)*4);
-
-    // sleep(1);
-
-    // vector<uint32_t> two_matrix;
-    // two_matrix.push_back(1);
-    // // two_matrix.push_back(0x02030102);
-    // // two_matrix.push_back(0x03010203);
-    // // two_matrix.push_back(0x01020301);
-    // // two_matrix.push_back(0x02030000);
-    // //Write in Hw
-    // write_hardware_registers(two_matrix, hw32_vptr);
-
-    // //Read in Hw
-
-    // while(!hw32_vptr[1]){
-    //   ROS_INFO("WAITING");
-    // }
-    // int32_t array[2];
-    // for(int i=0; i<5; i++){
-    //   memcpy((void*)(array), ddr_pointer+i,sizeof(int32_t)*2);
-    //   printf("%X\n", array[0]);
-    //   printf("%X\n", array[1]);
-    // }
 
 
     setSensorParameters();
@@ -96,7 +51,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       //configs.push_back(sensor_parameters.angular_resolution_horizontal*100);                                           //d_azimuth
       configs.push_back(0);
       //configs.push_back(sensor_parameters.angular_resolution_vertical*100);                                             //d_elevation               //hdl_64 -> 46.6
-      configs.push_back(2);
+      configs.push_back(3);
       //configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
       configs.push_back(2);
       //configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
@@ -161,13 +116,13 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
       // read range image
       auto start_read_hw = std::chrono::high_resolution_clock::now();
-      unsigned char * rgb_image_hw = read_hardware_pointcloud(ddr_pointer, sensor_parameters.n_columns*sensor_parameters.sensor_tag);
+      unsigned char * rgb_image_hw = read_hardware_pointcloud(ddr_pointer, sensor_parameters.n_columns*sensor_parameters.sensor_tag*2);
       auto stop_read_hw = std::chrono::high_resolution_clock::now();
 
       //PNG
-      file_name_hw="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + "_hw.png";
+      file_name_hw="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag*2) + "_" + std::to_string(counter) + "_hw.png";
       auto start_png_hw = std::chrono::high_resolution_clock::now();
-      image = cv::Mat(sensor_parameters.sensor_tag, sensor_parameters.n_columns, CV_8UC3, static_cast<void*> (rgb_image_hw));
+      image = cv::Mat(sensor_parameters.sensor_tag*2, sensor_parameters.n_columns, CV_8UC3, static_cast<void*> (rgb_image_hw));
       cv::imwrite(file_name_hw, image, compression_params);
       auto stop_png_hw = std::chrono::high_resolution_clock::now();
 
@@ -189,27 +144,29 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // }
     // std::cout << counter << ": Max Range" << max_range << endl;
 
-    // float max_elevation=0, min_elevation=0, max_azimuth=0;
+    // float max_elevation=0, min_elevation=0, max_azimuth=0, min_azimuth = 20;
     // int cnt_above=0, cnt_below=0;
-    // static float top_elevation = 0, bot_elevation=0;
+    // static float top_azimuth = 0, bot_azimuth=20;
     // for (auto point :*input_cloud) {
     //   float elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) *100;
     //   const auto a = std::atan2(point.y, point.x);
     //   float azimuth = (float) ((point.y >= 0 ? a : a + M_PI * 2) * (180.0f/M_PI)) *100;
     //   if(azimuth>max_azimuth)
     //     max_azimuth=azimuth;
+    //   else if(azimuth<min_azimuth && azimuth >= 0)
+    //     min_azimuth=azimuth;
     //   if(elevation>max_elevation)
     //     max_elevation=elevation;
     //   else if(elevation<min_elevation)
     //     min_elevation=elevation;
-    //   if(elevation > 300)
+    //   if(azimuth > 35980)
     //     cnt_above++;
-    //   else if(elevation < -2400)
+    //   else if(azimuth < 10 && azimuth >= 0)
     //     cnt_below++;
-    //   if(elevation>top_elevation)
-    //     top_elevation=elevation;
-    //   else if(elevation<bot_elevation)
-    //     bot_elevation=elevation;
+    //   if(azimuth>top_azimuth)
+    //     top_azimuth=azimuth;
+    //   else if(azimuth<bot_azimuth && azimuth >= 0)
+    //     bot_azimuth=azimuth;
     // }
 
     // float range, range_n;
@@ -222,10 +179,9 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     // }
 
 
-    // std::cout << counter +1 << "=> Elev max: " << max_elevation << " | Elev min: " << min_elevation << endl;
-    // std::cout << "TOP ELEVATION: " << top_elevation << " | BOTTOM ELEVATION: " << bot_elevation << endl;
-    // std::cout << "TOP AZIMUTH: " << max_azimuth << endl;
-    // std::cout << "Above 3: " << cnt_above << " | Below -24: " << cnt_below << endl;
+    // std::cout << counter + 1 << "=> Azimuth max: " << max_azimuth << " | Azimuth min: " << min_azimuth << endl;
+    // std::cout << "TOP AZIMUTH: " << top_azimuth << " | BOTTOM AZIMUTH: " << bot_azimuth << endl;
+    // std::cout << "Above 35980: " << cnt_above << " | Below 20: " << cnt_below << endl;
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
     // string file_name1 = "clouds/pointclouds/savedClouds/64/new_ascii_" + std::to_string(counter) + ".pcd";
@@ -249,7 +205,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     auto start_png = std::chrono::high_resolution_clock::now();
     //pcl::io::saveRgbPNGFile(file_name, rgb_image, range_image.width, range_image.height);
     image = cv::Mat(range_image.height, range_image.width, CV_8UC3, static_cast<void*> (rgb_image));
-    cv::imwrite(file_name, image, compression_params);
+    //cv::imwrite(file_name, image, compression_params);
     auto stop_png = std::chrono::high_resolution_clock::now();
     auto duration_png = std::chrono::duration_cast<std::chrono::milliseconds>(stop_png - start_png);
 
