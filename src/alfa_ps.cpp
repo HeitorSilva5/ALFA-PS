@@ -55,7 +55,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
       //configs.push_back((sensor_parameters.min_vertical_angle)*100);                                                    //min_vert_angle
       configs.push_back(2);
       //configs.push_back(sensor_parameters.sensor_tag);                                                                  //n_lines
-      configs.push_back(2);
+      configs.push_back(3);
       //configs.push_back(sensor_parameters.n_columns);                                                                   //n_columns
       configs.push_back(0);
       if(sensor_parameters.max_sensor_distance==100)                                                                    //LUT input selector
@@ -135,7 +135,7 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       cout << "READ TIME:" << duration_read_hw.count() << "us" << endl;
       cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
     }
-
+    
     // static float max_range=0;
     // for (auto point :*input_cloud) {
     //   float range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
