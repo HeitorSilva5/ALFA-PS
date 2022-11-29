@@ -401,6 +401,7 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
         default_configurations[0][7].config = req.configurations[7].config;
         default_configurations[0][8].config = req.configurations[8].config;
         default_configurations[0][9].config = req.configurations[9].config;
+        default_configurations[0][10].config = req.configurations[10].config;
 
         if(hw)
         {
