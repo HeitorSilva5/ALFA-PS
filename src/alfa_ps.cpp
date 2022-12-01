@@ -34,9 +34,19 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
     points_per_second = 0;
     frames_per_second = 0;
 
+    avg_exec_time_ri_hw = 0;
+    avg_exec_time_png_hw = 0;
+    avg_exec_time_storeddr_hw = 0;
+    avg_exec_time_readddr_hw = 0;
+    avg_size_png_hw = 0;
+    points_per_second_hw = 0;
+    frames_per_second_hw = 0;
+    points_per_second_hw_w_store = 0;
+    frames_per_second_hw_w_store = 0;
+
     over_sampling = false;
     
-    NOF=76;
+    NOF=96;
 
     compression_lvl=1;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
@@ -124,58 +134,60 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       auto duration_RI_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_RI_hw - start_RI_hw);
       auto duration_read_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_read_hw - start_read_hw);
       auto duration_png_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_png_hw - start_png_hw);
-      cout << "STORE TIME:" << duration_store_hw.count() << "ms" << endl;
-      cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
-      cout << "READ TIME:" << duration_read_hw.count() << "us" << endl;
-      cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
+      calculate_metrics_hw(input_cloud->size(), file_name_hw, counter +1, duration_RI_hw.count(), duration_png_hw.count(), duration_store_hw.count(), duration_read_hw.count());
+      // cout << "STORE TIME:" << duration_store_hw.count() << "ms" << endl;
+      // cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
+      // cout << "READ TIME:" << duration_read_hw.count() << "us" << endl;
+      // cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
     }
     
     // static float max_range=0;
-    // for (auto point :*input_cloud) {
-    //   float range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
-    //   if(range>max_range)
-    //     max_range = range;
-    // }
-    // std::cout << counter << ": Max Range" << max_range << endl;
+    // float max_range2 = 0;
 
     // float max_elevation=0, min_elevation=0, max_azimuth=0, min_azimuth = 20;
-    // int cnt_above=0, cnt_below=0;
+    // static int cnt_above=0, cnt_below=0;
     // static float top_azimuth = 0, bot_azimuth=20;
+    // static float top_elevation = 0, bot_elevation=20;
     // for (auto point :*input_cloud) {
-    //   float elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) *100;
-    //   const auto a = std::atan2(point.y, point.x);
-    //   float azimuth = (float) ((point.y >= 0 ? a : a + M_PI * 2) * (180.0f/M_PI)) *100;
-    //   if(azimuth>max_azimuth)
-    //     max_azimuth=azimuth;
-    //   else if(azimuth<min_azimuth && azimuth >= 0)
-    //     min_azimuth=azimuth;
-    //   if(elevation>max_elevation)
-    //     max_elevation=elevation;
-    //   else if(elevation<min_elevation)
-    //     min_elevation=elevation;
-    //   if(azimuth > 35980)
-    //     cnt_above++;
-    //   else if(azimuth < 10 && azimuth >= 0)
-    //     cnt_below++;
-    //   if(azimuth>top_azimuth)
-    //     top_azimuth=azimuth;
-    //   else if(azimuth<bot_azimuth && azimuth >= 0)
-    //     bot_azimuth=azimuth;
+    //    float elevation = (float) ((std::atan2(point.z, std::hypot(point.x, point.y)))* (180.0f/M_PI)) *100;
+      // const auto a = std::atan2(point.y, point.x);
+      // float azimuth = (float) ((point.y >= 0 ? a : a + M_PI * 2) * (180.0f/M_PI)) *100;
+      //float range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
+      // if(azimuth>max_azimuth)
+      //   max_azimuth=azimuth;
+      // else if(azimuth<min_azimuth && azimuth >= 0)
+      //   min_azimuth=azimuth;
+      // if(elevation>max_elevation && elevation < 1060)
+      //   max_elevation=elevation;
+      // else if(elevation<min_elevation && elevation > -3060)
+      //   min_elevation=elevation;
+      // if(range > 75)
+      //   cnt_above++;
+      // else if(azimuth < 20 && azimuth >= 0)
+      //   cnt_below++;
+      // if(azimuth>top_azimuth)
+      //   top_azimuth=azimuth;
+      // else if(azimuth<bot_azimuth)
+      //   bot_azimuth=azimuth;
+      // if(elevation>top_elevation)
+      //   top_elevation=elevation;
+      // else if(elevation<bot_elevation)
+      //   bot_elevation=elevation;
+      // if(range>max_range)
+      //   max_range = range;
+      // if(range>max_range2)
+      //   max_range2 = range;
     // }
-
-    // float range, range_n;
-    // for(int cnt =0 ; cnt < 20 ; cnt ++){
-    //   auto point = input_cloud->points[cnt];
-    //   range = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
-    //   range_n = range * 2.125;
-    //   uint16_t a16_range = lrint(range_n);
-    //   std::cout << cnt << " range: " << range << " | normalized rangef: " << range_n << " | normalized range: " << a16_range << endl;
-    // }
-
-
-    // std::cout << counter + 1 << "=> Azimuth max: " << max_azimuth << " | Azimuth min: " << min_azimuth << endl;
+    // static long int total_points = 0;
+    // total_points += input_cloud->size();
+    // std::cout << counter + 1 << "=> POINTS: " << total_points << endl;
+    // std::cout << "Azimuth max: " << max_azimuth << " | Azimuth min: " << min_azimuth << endl;
     // std::cout << "TOP AZIMUTH: " << top_azimuth << " | BOTTOM AZIMUTH: " << bot_azimuth << endl;
-    // std::cout << "Above 35980: " << cnt_above << " | Below 20: " << cnt_below << endl;
+    // std::cout << "Elevation max: " << max_elevation << " | Elevation min: " << min_elevation << endl;
+    // std::cout << "TOP ELEVATION: " << top_elevation << " | BOTTOM ELEVATION: " << bot_elevation << endl;
+    // std::cout << "RANGE ABOVE 90: " << cnt_above << " | Below 20: " << cnt_below << endl;
+    // std::cout << "Max Range: " << max_range << endl;
+    // std::cout << "Max Range per frame: " << max_range2 << endl;
 
     file_name="./clouds/CompressedClouds/PNGS/rosbag_" + std::to_string(sensor_parameters.sensor_tag) + "_" + std::to_string(counter) + ".png";
     // string file_name1 = "clouds/pointclouds/savedClouds/64/new_ascii_" + std::to_string(counter) + ".pcd";
@@ -185,8 +197,6 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
     auto start_ri = std::chrono::high_resolution_clock::now();
     range_image.createFromPointCloud(*input_cloud, sensor_parameters.angular_resolution_horizontal_rads, sensor_parameters.angular_resolution_vertical_rads, sensor_parameters.max_angle_width, sensor_parameters.max_angle_height,
                                      sensor_pose, coordinate_frame, noise_level, min_range, border_size);
-    auto stop_ri = std::chrono::high_resolution_clock::now();                                 
-    auto duration_ri = std::chrono::duration_cast<std::chrono::milliseconds>(stop_ri - start_ri);
 
     //std::cout << range_image << "\n";
 
@@ -194,16 +204,19 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
 
     unsigned char* rgb_image = getVisualImage(ranges, range_image.width, range_image.height, 0, sensor_parameters.max_sensor_distance, true);
 
+    auto stop_ri = std::chrono::high_resolution_clock::now();                                 
+    auto duration_ri = std::chrono::duration_cast<std::chrono::milliseconds>(stop_ri - start_ri);
+
     // std::cout << range_image.width << " | " << range_image.height << endl;
 
     auto start_png = std::chrono::high_resolution_clock::now();
     //pcl::io::saveRgbPNGFile(file_name, rgb_image, range_image.width, range_image.height);
     image = cv::Mat(range_image.height, range_image.width, CV_8UC3, static_cast<void*> (rgb_image));
-    //cv::imwrite(file_name, image, compression_params);
+    cv::imwrite(file_name, image, compression_params);
     auto stop_png = std::chrono::high_resolution_clock::now();
     auto duration_png = std::chrono::duration_cast<std::chrono::milliseconds>(stop_png - start_png);
 
-    calculate_metrics(input_cloud->size(), file_name, duration_ri.count(), duration_png.count(), counter+1);
+    calculate_metrics(input_cloud->size(), file_name, counter +1, duration_ri.count(), duration_png.count());
     publish_metrics(output_metrics);
 
     free(ranges);
@@ -220,7 +233,18 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
         avg_size_png = 0;
         total_points = 0;
         points_per_second = 0;
-        frames_per_second = 0; 
+        frames_per_second = 0;
+
+        avg_exec_time_ri_hw = 0;
+        avg_exec_time_png_hw = 0;
+        avg_exec_time_storeddr_hw = 0;
+        avg_exec_time_readddr_hw = 0;
+        avg_size_png_hw = 0;
+        points_per_second_hw = 0;
+        frames_per_second_hw = 0;
+        points_per_second_hw_w_store = 0;
+        frames_per_second_hw_w_store = 0;
+
         return;
     }
 
@@ -429,7 +453,7 @@ void AlfaPsCompressor::write_hardware_configurations()
           configs.push_back(0);                                       //n_lines 16 = n_lines LUT[0]
         }
         else{
-          configs.push_back(1);                                       //d_elevation 1 = elevation LUT[1]
+          configs.push_back(1);                                       //d_elevation 0.97 = elevation LUT[1]
           configs.push_back(1);                                       //n_lines 32 = n_lines LUT[1]
         }
         configs.push_back(0);                                         //min_vert_angle -15 = min_vert_angle LUT[0]
@@ -439,11 +463,11 @@ void AlfaPsCompressor::write_hardware_configurations()
       case 32:
         configs.push_back(0);                                         //d_azimuth 0.2 = azimuth LUT[0]
         if(!over_sampling){
-          configs.push_back(2);                                       //d_elevation 1.29 = elevation LUT[2]
+          configs.push_back(2);                                       //d_elevation 1.33 = elevation LUT[2]
           configs.push_back(1);                                       //n_lines 32 = n_lines LUT[1]
         }
         else{
-          configs.push_back(3);                                       //d_elevation 0.64 = elevation LUT[3]
+          configs.push_back(3);                                       //d_elevation 0.66 = elevation LUT[3]
           configs.push_back(2);                                       //n_lines 64 = n_lines LUT[2]
         }
         configs.push_back(1);                                         //min_vert_angle -30 = min_vert_angle LUT[1]
@@ -453,7 +477,7 @@ void AlfaPsCompressor::write_hardware_configurations()
       case 64:
         configs.push_back(0);                                         //d_azimuth 0.2 = azimuth LUT[0]
         if(!over_sampling){
-          configs.push_back(4);                                       //d_elevation 0.46 = elevation LUT[4]
+          configs.push_back(4);                                       //d_elevation 0.47 = elevation LUT[4]
           configs.push_back(2);                                       //n_lines 64 = n_lines LUT[2]
         }
         else{
@@ -470,13 +494,13 @@ void AlfaPsCompressor::write_hardware_configurations()
     write_hardware_registers(configs, hw32_vptr, 3);
 }
 
-void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float duration_ri, float duration_png, int counter)
+void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, int counter, float duration_ri, float duration_png)
 {
 
     std::ifstream file;
     float size_png = 0;
-    float current_fps;
     float current_pps;
+    float current_fps;
 
     file.open(png_path, std::ios::in | std::ios::binary | std::ios::ate );
 
@@ -559,14 +583,40 @@ void AlfaPsCompressor::calculate_metrics(int cloud_size, string png_path, float 
 
 }
 
+void AlfaPsCompressor::calculate_metrics_hw(int cloud_size, string png_path, int counter, float duration_ri, float duration_png, float duration_store_ddr, float duration_read_ddr)
+{
+
+    std::ifstream file;
+    float size_png = 0;
+
+    file.open(png_path, std::ios::in | std::ios::binary | std::ios::ate);
+
+    file.seekg(0, std::ios::end);
+    size_png = file.tellg();
+
+    avg_exec_time_ri_hw += duration_ri;
+    avg_exec_time_png_hw += duration_png;
+    avg_exec_time_storeddr_hw += duration_store_ddr;
+    avg_exec_time_readddr_hw += duration_read_ddr;
+
+    avg_size_png_hw += size_png/1000;
+
+    points_per_second_hw_w_store += (1000*cloud_size)/(duration_png + duration_ri + duration_store_ddr + duration_read_ddr);
+    frames_per_second_hw_w_store += 1000/(duration_png + duration_ri + duration_store_ddr + duration_read_ddr);
+
+    points_per_second_hw += (1000*cloud_size)/(duration_png + duration_ri + duration_read_ddr);
+    frames_per_second_hw += 1000/(duration_png + duration_ri + duration_read_ddr);
+
+}
 
 void AlfaPsCompressor::avg_metrics()
 {
 
     ROS_INFO("---------------------------Ps-Compression finished---------------------------\n");
-    ROS_INFO("Range image average processing time: %f\n", avg_exec_time_ri/NOF);
-    ROS_INFO("PNG average processing time: %f\n", avg_exec_time_png/NOF);
-    ROS_INFO("Total average processing time: %f\n", (avg_exec_time_png+avg_exec_time_ri)/NOF);
+    ROS_INFO("------------------------------------SW---------------------------------------\n");
+    ROS_INFO("Range image average processing time: %f ms\n", avg_exec_time_ri/NOF);
+    ROS_INFO("PNG average processing time: %f ms\n", avg_exec_time_png/NOF);
+    ROS_INFO("Total average processing time: %f ms\n", (avg_exec_time_png+avg_exec_time_ri)/NOF);
     ROS_INFO("Average FPS NEW: %f\n", frames_per_second/NOF);
     ROS_INFO("Average PPS: %f\n", points_per_second/NOF);
     ROS_INFO("Oringal point cloud size:\n");
@@ -577,5 +627,22 @@ void AlfaPsCompressor::avg_metrics()
     ROS_INFO("-------------------------Total: %fkB\n", avg_size_png);
     ROS_INFO("-------------------------Average (per frame): %fkBs\n", avg_size_png/NOF);
     ROS_INFO("Average Compression Ratio: %f\n", avg_size_original/avg_size_png);
+
+    ROS_INFO("------------------------------------HW---------------------------------------\n");
+    ROS_INFO("Store DDR average processing time: %f\n", avg_exec_time_storeddr_hw/NOF);
+    ROS_INFO("Range image average processing time: %f\n", avg_exec_time_ri_hw/NOF);
+    ROS_INFO("Read DDR average processing time: %f\n", avg_exec_time_readddr_hw/NOF);
+    ROS_INFO("PNG average processing time: %f\n", avg_exec_time_png_hw/NOF);
+    ROS_INFO("Total average processing time with store: %f\n", (avg_exec_time_storeddr_hw+avg_exec_time_ri_hw+avg_exec_time_readddr_hw+avg_exec_time_png_hw)/NOF);
+    ROS_INFO("Total average processing time without store: %f\n", (avg_exec_time_ri_hw+avg_exec_time_readddr_hw+avg_exec_time_png_hw)/NOF);
+    ROS_INFO("Average FPS (with store): %f\n", frames_per_second_hw/NOF);
+    ROS_INFO("Average PPS (with store): %f\n", points_per_second_hw/NOF);
+    ROS_INFO("Average FPS (without store): %f\n", frames_per_second_hw_w_store/NOF);
+    ROS_INFO("Average PPS (without store): %f\n", points_per_second_hw_w_store/NOF);
+    ROS_INFO("PNGs size:\n");
+    ROS_INFO("-------------------------Total: %fkB\n", avg_size_png_hw);
+    ROS_INFO("-------------------------Average (per frame): %fkBs\n", avg_size_png_hw/NOF);
+    ROS_INFO("Average Compression Ratio: %f\n", avg_size_original/avg_size_png_hw);
+
 
 }

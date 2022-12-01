@@ -16,7 +16,7 @@
 #include "alfa_node.h"
 #include <opencv2/highgui.hpp>
 
-// 64 -> 76 | 32 -> 96 | 32 -> 593
+// 64 -> 76 | 32 -> 96 | 16 -> 593
 // #define NOF 76                                         //Number of frames in the rosbag
 typedef long long int u64;
 
@@ -45,7 +45,8 @@ class AlfaPsCompressor : public  AlfaNode
         void setSensorParameters();
         void write_hardware_configurations();
         alfa_msg::AlfaMetrics output_metrics;
-        void calculate_metrics(int cloud_size, string png_path, float duration_ri, float duration_png, int counter);
+        void calculate_metrics(int cloud_size, string png_path, int counter, float duration_ri, float duration_png);
+        void calculate_metrics_hw(int cloud_size, string png_path, int counter, float duration_ri, float duration_png, float duration_store_ddr, float duration_read_ddr);
         void avg_metrics();
 
 
@@ -71,13 +72,25 @@ class AlfaPsCompressor : public  AlfaNode
         double avg_size_png;
         double total_points;
 
+        double avg_exec_time_ri_hw;
+        double avg_exec_time_png_hw;
+        double avg_exec_time_storeddr_hw;
+        double avg_exec_time_readddr_hw;
+        double avg_size_png_hw;
+        double points_per_second_hw;
+        double frames_per_second_hw;
+        double points_per_second_hw_w_store = 0;
+        double frames_per_second_hw_w_store = 0;
+
         bool hw;
         bool over_sampling;
+
         u64 *ddr_pointer;
         u_int32_t *hw32_vptr;
 
         double points_per_second;
         double frames_per_second;
+
 
         int NOF;
 };
