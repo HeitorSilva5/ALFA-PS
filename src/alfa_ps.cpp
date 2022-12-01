@@ -46,7 +46,7 @@ AlfaPsCompressor::AlfaPsCompressor(string node_name,string node_type,vector<alfa
 
     over_sampling = false;
     
-    NOF=96;
+    NOF=76;
 
     compression_lvl=1;
     compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
@@ -135,10 +135,10 @@ void AlfaPsCompressor::process_pointcloud(pcl::PointCloud<pcl::PointXYZI>::Ptr i
       auto duration_read_hw = std::chrono::duration_cast<std::chrono::microseconds>(stop_read_hw - start_read_hw);
       auto duration_png_hw = std::chrono::duration_cast<std::chrono::milliseconds>(stop_png_hw - start_png_hw);
       calculate_metrics_hw(input_cloud->size(), file_name_hw, counter +1, duration_RI_hw.count(), duration_png_hw.count(), duration_store_hw.count(), duration_read_hw.count());
-      // cout << "STORE TIME:" << duration_store_hw.count() << "ms" << endl;
-      // cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
-      // cout << "READ TIME:" << duration_read_hw.count() << "us" << endl;
-      // cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
+      cout << "STORE TIME:" << duration_store_hw.count() << "ms" << endl;
+      cout << "RANGE IMAGE TOOK:" << duration_RI_hw.count() << "us" << endl;
+      cout << "READ TIME:" << duration_read_hw.count() << "us" << endl;
+      cout << "PNG TIME:" << duration_png_hw.count() << "ms" << endl;
     }
     
     // static float max_range=0;
