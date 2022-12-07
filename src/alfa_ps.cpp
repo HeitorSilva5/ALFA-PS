@@ -601,11 +601,11 @@ void AlfaPsCompressor::calculate_metrics_hw(int cloud_size, string png_path, int
 
     avg_size_png_hw += size_png/1000;
 
-    points_per_second_hw_w_store += (1000*cloud_size)/(duration_png + duration_ri + duration_store_ddr + duration_read_ddr);
-    frames_per_second_hw_w_store += 1000/(duration_png + duration_ri + duration_store_ddr + duration_read_ddr);
+    points_per_second_hw_w_store += (1000*cloud_size)/(duration_png + (duration_ri/1000) + duration_store_ddr + (duration_read_ddr/1000));
+    frames_per_second_hw_w_store += 1000/(duration_png + (duration_ri/1000) + duration_store_ddr + (duration_read_ddr/1000));
 
-    points_per_second_hw += (1000*cloud_size)/(duration_png + duration_ri + duration_read_ddr);
-    frames_per_second_hw += 1000/(duration_png + duration_ri + duration_read_ddr);
+    points_per_second_hw += (1000*cloud_size)/(duration_png + (duration_ri/1000) + (duration_read_ddr/1000));
+    frames_per_second_hw += 1000/(duration_png + (duration_ri/1000) + (duration_read_ddr/1000));
 
 }
 
@@ -630,15 +630,15 @@ void AlfaPsCompressor::avg_metrics()
 
     ROS_INFO("------------------------------------HW---------------------------------------\n");
     ROS_INFO("Store DDR average processing time: %f\n", avg_exec_time_storeddr_hw/NOF);
-    ROS_INFO("Range image average processing time: %f\n", avg_exec_time_ri_hw/NOF);
-    ROS_INFO("Read DDR average processing time: %f\n", avg_exec_time_readddr_hw/NOF);
+    ROS_INFO("Range image average processing time: %f\n", avg_exec_time_ri_hw/(NOF*1000));
+    ROS_INFO("Read DDR average processing time: %f\n", avg_exec_time_readddr_hw/(NOF*1000));
     ROS_INFO("PNG average processing time: %f\n", avg_exec_time_png_hw/NOF);
-    ROS_INFO("Total average processing time with store: %f\n", (avg_exec_time_storeddr_hw+avg_exec_time_ri_hw+avg_exec_time_readddr_hw+avg_exec_time_png_hw)/NOF);
-    ROS_INFO("Total average processing time without store: %f\n", (avg_exec_time_ri_hw+avg_exec_time_readddr_hw+avg_exec_time_png_hw)/NOF);
-    ROS_INFO("Average FPS (with store): %f\n", frames_per_second_hw/NOF);
-    ROS_INFO("Average PPS (with store): %f\n", points_per_second_hw/NOF);
-    ROS_INFO("Average FPS (without store): %f\n", frames_per_second_hw_w_store/NOF);
-    ROS_INFO("Average PPS (without store): %f\n", points_per_second_hw_w_store/NOF);
+    ROS_INFO("Total average processing time with store: %f\n", (avg_exec_time_storeddr_hw + (avg_exec_time_ri_hw/1000) + (avg_exec_time_readddr_hw/1000) + avg_exec_time_png_hw)/NOF);
+    ROS_INFO("Total average processing time without store: %f\n", ((avg_exec_time_ri_hw/1000) + (avg_exec_time_readddr_hw/1000) + avg_exec_time_png_hw)/NOF);
+    ROS_INFO("Average FPS (with store): %f\n", frames_per_second_hw_w_store/NOF);
+    ROS_INFO("Average PPS (with store): %f\n", points_per_second_hw_w_store/NOF);
+    ROS_INFO("Average FPS (without store): %f\n", frames_per_second_hw/NOF);
+    ROS_INFO("Average PPS (without store): %f\n", points_per_second_hw/NOF);
     ROS_INFO("PNGs size:\n");
     ROS_INFO("-------------------------Total: %fkB\n", avg_size_png_hw);
     ROS_INFO("-------------------------Average (per frame): %fkBs\n", avg_size_png_hw/NOF);
