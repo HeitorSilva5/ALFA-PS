@@ -391,7 +391,7 @@ alfa_msg::AlfaConfigure::Response AlfaPsCompressor::process_config(alfa_msg::Alf
         sensor_parameters.max_angle_width = (float) (req.configurations[3].config * (M_PI/180.0f));
         sensor_parameters.max_angle_height = (float) (req.configurations[4].config * (M_PI/180.0f));
         sensor_parameters.max_sensor_distance = req.configurations[5].config;
-        sensor_parameters.min_vertical_angle = req.configurations[6].config;
+        sensor_parameters.min_vertical_angle = -(req.configurations[6].config);
         sensor_parameters.n_columns = req.configurations[7].config;
         NOF = req.configurations[8].config;
         compression_params.clear();

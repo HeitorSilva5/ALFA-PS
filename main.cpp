@@ -30,10 +30,10 @@ int main(int argc, char **argv)
        parameter5.config = 90;
        parameter5.config_name = "Maximum Height Angle";
        
-       parameter6.config = 120;
+       parameter6.config = 80;
        parameter6.config_name = "Sensor's maximum range"; 
 
-       parameter7.config = -24.8;
+       parameter7.config = 24.8;
        parameter7.config_name = "Sensor's minimum vertical angle";
 
        parameter8.config = 1800;
